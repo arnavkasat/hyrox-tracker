@@ -128,3 +128,104 @@
     @apply font-sans;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Hyrox Tracker theme: true black, white, one lime accent.
+   Dark is the only theme that ships today; the light tokens above are left in
+   place so a toggle is a small change rather than a rewrite.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+
+  /* iOS-ish easing for sheets and taps. */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.dark {
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+
+  /* Grouped-list surfaces, roughly iOS systemGray6 / systemGray5. */
+  --card: oklch(0.19 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.19 0 0);
+  --popover-foreground: oklch(1 0 0);
+
+  /* Lime is the only accent in the app. */
+  --primary: oklch(0.88 0.216 128);
+  --primary-foreground: oklch(0.16 0.04 128);
+
+  --secondary: oklch(0.26 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.26 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.28 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.65 0.21 25);
+
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.88 0.216 128 / 60%);
+
+  --chart-1: oklch(0.88 0.216 128);
+  --chart-2: oklch(0.72 0 0);
+  --chart-3: oklch(0.52 0 0);
+  --chart-4: oklch(0.65 0.14 128);
+  --chart-5: oklch(0.38 0 0);
+
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-lime: var(--primary);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    /* Stop the whole page rubber-banding under the tab bar. */
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+    /* Tabular figures keep weights and timers from jittering as they change. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* No blue flash on tap, and no accidental text selection while logging sets. */
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* Inputs at >=16px so iOS Safari doesn't zoom when they're focused. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility h-tabbar {
+  height: calc(3.25rem + env(safe-area-inset-bottom));
+}
+
+/* Leaves room for the fixed tab bar at the bottom of every scroll view. */
+@utility pb-tabbar {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
