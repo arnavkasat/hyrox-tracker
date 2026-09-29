@@ -2,6 +2,9 @@
 --
 -- Single-user app, but every table still carries user_id + row-level security
 -- so the data is scoped correctly if a second account ever exists.
+--
+-- Safe to run more than once: everything here is idempotent, so pasting it
+-- into the SQL editor twice is a no-op rather than an error.
 
 create extension if not exists "pgcrypto";
 
@@ -19,7 +22,7 @@ $$;
 
 -- ---------------------------------------------------------------- settings --
 -- Exactly one row per user: race date, body stats, targets, sync bookkeeping.
-create table public.settings (
+create table if not exists public.settings (
   id                   uuid primary key default gen_random_uuid(),
   user_id              uuid not null unique references auth.users(id) on delete cascade,
 
@@ -50,7 +53,7 @@ create table public.settings (
 -- ----------------------------------------------------------- plan_sessions --
 -- One planned training day. `planned` holds the prescription as JSON:
 --   [{ "exercise": "Back squat", "sets": 4, "reps": "5-8", "unit": "kg" }, ...]
-create table public.plan_sessions (
+create table if not exists public.plan_sessions (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
 
@@ -76,12 +79,12 @@ create table public.plan_sessions (
   unique (user_id, date)
 );
 
-create index plan_sessions_user_date_idx on public.plan_sessions (user_id, date);
-create index plan_sessions_user_week_idx on public.plan_sessions (user_id, week);
+create index if not exists plan_sessions_user_date_idx on public.plan_sessions (user_id, date);
+create index if not exists plan_sessions_user_week_idx on public.plan_sessions (user_id, week);
 
 
 -- ----------------------------------------------------------- exercise_logs --
-create table public.exercise_logs (
+create table if not exists public.exercise_logs (
   id              uuid primary key default gen_random_uuid(),
   user_id         uuid not null references auth.users(id) on delete cascade,
   session_id      uuid not null references public.plan_sessions(id) on delete cascade,
@@ -103,12 +106,12 @@ create table public.exercise_logs (
   unique (session_id, exercise, set_number)
 );
 
-create index exercise_logs_user_exercise_idx
+create index if not exists exercise_logs_user_exercise_idx
   on public.exercise_logs (user_id, exercise, completed_at desc);
 
 
 -- ---------------------------------------------------------- daily_checkins --
-create table public.daily_checkins (
+create table if not exists public.daily_checkins (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
 
@@ -124,14 +127,14 @@ create table public.daily_checkins (
   unique (user_id, date)
 );
 
-create index daily_checkins_user_date_idx on public.daily_checkins (user_id, date desc);
+create index if not exists daily_checkins_user_date_idx on public.daily_checkins (user_id, date desc);
 
 
 -- ---------------------------------------------------------- health_metrics --
 -- One row per day. Health Auto Export sends each metric separately, so the
 -- ingest endpoint merges metric-by-metric into the row for that date; a null
 -- column just means that metric has not arrived yet.
-create table public.health_metrics (
+create table if not exists public.health_metrics (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users(id) on delete cascade,
 
@@ -149,12 +152,12 @@ create table public.health_metrics (
   unique (user_id, date)
 );
 
-create index health_metrics_user_date_idx on public.health_metrics (user_id, date desc);
+create index if not exists health_metrics_user_date_idx on public.health_metrics (user_id, date desc);
 
 
 -- ---------------------------------------------------------------- workouts --
 -- Completed activity, usually mirrored from Apple Health.
-create table public.workouts (
+create table if not exists public.workouts (
   id               uuid primary key default gen_random_uuid(),
   user_id          uuid not null references auth.users(id) on delete cascade,
 
@@ -174,11 +177,11 @@ create table public.workouts (
   unique (user_id, started_at, type)
 );
 
-create index workouts_user_started_idx on public.workouts (user_id, started_at desc);
+create index if not exists workouts_user_started_idx on public.workouts (user_id, started_at desc);
 
 
 -- -------------------------------------------------------------- benchmarks --
-create table public.benchmarks (
+create table if not exists public.benchmarks (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
 
@@ -192,12 +195,12 @@ create table public.benchmarks (
   updated_at  timestamptz not null default now()
 );
 
-create index benchmarks_user_name_date_idx on public.benchmarks (user_id, name, date desc);
+create index if not exists benchmarks_user_name_date_idx on public.benchmarks (user_id, name, date desc);
 
 
 -- ------------------------------------------------------------------ photos --
 -- Files live in the private `photos` storage bucket; this is the index.
-create table public.photos (
+create table if not exists public.photos (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
 
@@ -210,13 +213,13 @@ create table public.photos (
   updated_at    timestamptz not null default now()
 );
 
-create index photos_user_date_idx on public.photos (user_id, date desc);
+create index if not exists photos_user_date_idx on public.photos (user_id, date desc);
 
 
 -- ---------------------------------------------------------- weekly_reviews --
 -- `proposed_changes` is the validated JSON from the weekly review job;
 -- `decisions` records which ones were accepted or rejected.
-create table public.weekly_reviews (
+create table if not exists public.weekly_reviews (
   id                uuid primary key default gen_random_uuid(),
   user_id           uuid not null references auth.users(id) on delete cascade,
 
@@ -237,7 +240,7 @@ create table public.weekly_reviews (
   unique (user_id, week_start)
 );
 
-create index weekly_reviews_user_week_idx on public.weekly_reviews (user_id, week_start desc);
+create index if not exists weekly_reviews_user_week_idx on public.weekly_reviews (user_id, week_start desc);
 
 
 -- ------------------------------------------------- updated_at + RLS, all --
@@ -250,14 +253,18 @@ begin
     'health_metrics', 'workouts', 'benchmarks', 'photos', 'weekly_reviews'
   ]
   loop
+    execute format('drop trigger if exists %I on public.%I',
+                   t || '_touch_updated_at', t);
     execute format(
-      'create trigger %I_touch_updated_at before update on public.%I
-         for each row execute function public.touch_updated_at()', t, t);
+      'create trigger %I before update on public.%I
+         for each row execute function public.touch_updated_at()',
+      t || '_touch_updated_at', t);
 
     execute format('alter table public.%I enable row level security', t);
 
     -- auth.uid() is wrapped in a select so Postgres evaluates it once per
     -- statement rather than once per row.
+    execute format('drop policy if exists %I on public.%I', t || '_own_rows', t);
     execute format(
       'create policy %I on public.%I for all to authenticated
          using ((select auth.uid()) = user_id)
