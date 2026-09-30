@@ -89,12 +89,19 @@ export function CheckinSheet({
               />
             </div>
 
-            <Rating label="Energy" value={energy} onChange={setEnergy} scale={ENERGY_SCALE} />
+            <Rating
+              label="Energy"
+              value={energy}
+              onChange={setEnergy}
+              scale={ENERGY_SCALE}
+              layoutId="rating-energy"
+            />
             <Rating
               label="Soreness"
               value={soreness}
               onChange={setSoreness}
               scale={SORENESS_SCALE}
+              layoutId="rating-soreness"
             />
 
             {photo ? (

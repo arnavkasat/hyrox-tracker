@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "motion/react";
 import { Check } from "lucide-react";
 
+import { PRESS_SPRING, RELEASE_SPRING, TAP_SMALL } from "@/components/ios/motion";
 import { Stepper } from "@/components/ios/stepper";
 import { cn } from "@/lib/utils";
 import { usesReps, usesWeight, type SetRow } from "@/lib/plan/sets";
@@ -54,20 +56,29 @@ export function SetRowItem({
           </span>
         </button>
 
-        <button
+        <motion.button
           type="button"
           onClick={onToggle}
           aria-label={`${row.completed ? "Undo" : "Complete"} set ${row.set_number}`}
           aria-pressed={row.completed}
+          whileTap={TAP_SMALL}
+          transition={PRESS_SPRING}
           className={cn(
-            "press flex size-11 shrink-0 items-center justify-center rounded-full border-2",
+            "flex size-11 shrink-0 items-center justify-center rounded-full border-2",
             row.completed
               ? "brand-fill border-transparent text-primary-foreground shadow-[0_4px_14px_-4px_rgb(76_180_255/65%)]"
               : "border-white/20 text-transparent",
           )}
         >
-          <Check className="size-5" strokeWidth={3} />
-        </button>
+          {/* A completed set pops slightly past full size and settles —
+              the small reward for finishing one. */}
+          <motion.span
+            animate={{ scale: row.completed ? 1 : 0.6 }}
+            transition={RELEASE_SPRING}
+          >
+            <Check className="size-5" strokeWidth={3} />
+          </motion.span>
+        </motion.button>
       </div>
 
       {expanded && (weight || reps) ? (

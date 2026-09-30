@@ -148,7 +148,8 @@
 
   /* iOS sheet/press easing. */
   --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Overshoots past 1 on the way back, which is the bounce. */
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.5, 1);
 }
 
 .dark {
@@ -276,16 +277,22 @@
     0 4px 16px -4px rgb(0 0 0 / 50%);
 }
 
-/** Press feedback. Cheap to animate — transform and filter only. */
+/** Press feedback. Transform and filter only, so it stays on the compositor.
+    Asymmetric on purpose: the squash is quick and linear-ish, the release
+    overshoots slightly. That asymmetry is most of what makes an iOS control
+    feel physical rather than animated. */
 @utility press {
   transition:
-    transform 150ms var(--ease-ios),
-    filter 150ms var(--ease-ios),
-    background-color 150ms var(--ease-ios);
+    transform 340ms var(--ease-spring),
+    filter 200ms var(--ease-ios),
+    background-color 200ms var(--ease-ios);
 
   &:active {
-    transform: scale(0.965);
-    filter: brightness(1.12);
+    transform: scale(0.955);
+    filter: brightness(1.14);
+    transition:
+      transform 110ms var(--ease-ios),
+      filter 110ms var(--ease-ios);
   }
 
   &:disabled {
@@ -294,20 +301,36 @@
   }
 }
 
-/** Stronger press for the big primary buttons. */
+/** The same, tuned for full-width primary buttons, which need less squash
+    to read as pressed because there's more of them to move. */
 @utility press-lg {
   transition:
-    transform 180ms var(--ease-spring),
-    filter 150ms var(--ease-ios);
+    transform 380ms var(--ease-spring),
+    filter 200ms var(--ease-ios);
 
   &:active {
-    transform: scale(0.955);
-    filter: brightness(1.08);
+    transform: scale(0.972);
+    filter: brightness(1.1);
+    transition:
+      transform 110ms var(--ease-ios),
+      filter 110ms var(--ease-ios);
   }
 
   &:disabled {
     transform: none;
     filter: none;
+  }
+}
+
+/* Anyone who has asked their device to calm down gets no springing. */
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .press-lg {
+    transition: filter 100ms linear;
+
+    &:active {
+      transform: none;
+    }
   }
 }
 
