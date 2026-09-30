@@ -32,7 +32,7 @@ export function Rating({
               className={cn(
                 "press h-13 flex-1 rounded-xl px-0.5 text-[11px] font-semibold tracking-tight",
                 active
-                  ? "ember text-primary-foreground shadow-[0_6px_18px_-8px_rgb(255_122_61/70%)]"
+                  ? "brand-fill text-primary-foreground shadow-[0_6px_18px_-8px_rgb(76_180_255/65%)]"
                   : "surface text-muted-foreground",
               )}
             >

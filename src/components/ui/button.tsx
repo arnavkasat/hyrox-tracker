@@ -19,8 +19,8 @@ const buttonVariants = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
         // Primary call to action: warm gradient, glow, spring press.
-        ember:
-          "ember press-lg border-white/10 font-semibold text-primary-foreground shadow-[0_8px_28px_-10px_rgb(255_122_61/60%)] active:translate-y-0",
+        brand:
+          "brand-fill press-lg border-white/10 font-semibold text-primary-foreground shadow-[0_8px_28px_-10px_rgb(76_180_255/55%)] active:translate-y-0",
         // Secondary action that still reads as a raised material.
         glass:
           "surface press font-medium text-foreground active:translate-y-0",

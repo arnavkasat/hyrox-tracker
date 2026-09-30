@@ -96,7 +96,7 @@ export function Calendar({
               <span
                 className={cn(
                   "flex size-6 items-center justify-center rounded-full text-[13px] leading-none",
-                  isToday && "ember font-bold text-primary-foreground",
+                  isToday && "brand-fill font-bold text-primary-foreground",
                   !isToday && isSelected && "font-semibold",
                 )}
               >

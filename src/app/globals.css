@@ -130,9 +130,9 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Hyrox Tracker — "Ember" theme.
+   Hyrox Tracker — cool theme.
 
-   Cool near-black base, warm tangerine accent. Surfaces are translucent
+   Cool near-black base, one bright sky-blue accent. Surfaces are translucent
    materials layered over the base rather than flat fills, so chrome that
    actually has content behind it (tab bar, sticky headers, sheets) reads as
    glass, and cards in the content flow still get the same tint and hairline.
@@ -153,15 +153,15 @@
 
 .dark {
   /* Base */
-  --background: #0b0d12;
-  --foreground: #f5f6f8;
+  --background: #080b12;
+  --foreground: #f1f5fa;
 
   /* Raised surfaces */
-  --raised: #161a22;
-  --card: #161a22;
-  --card-foreground: #f5f6f8;
-  --popover: #1a1f29;
-  --popover-foreground: #f5f6f8;
+  --raised: #141922;
+  --card: #141922;
+  --card-foreground: #f1f5fa;
+  --popover: #171d28;
+  --popover-foreground: #f1f5fa;
 
   /* Translucent materials, layered over --background */
   --material-thin: rgb(255 255 255 / 3.5%);
@@ -171,29 +171,29 @@
   --highlight: rgb(255 255 255 / 7%);
 
   /* Accent */
-  --primary: #ff7a3d;
-  --primary-foreground: #1a0a02;
-  --primary-soft: #ff9a5c;
-  --alt: #ffc145;
+  --primary: #4cb4ff;
+  --primary-foreground: #04121e;
+  --primary-soft: #7fccff;
+  --alt: #a78bfa;
 
   --secondary: rgb(255 255 255 / 7%);
-  --secondary-foreground: #f5f6f8;
+  --secondary-foreground: #f1f5fa;
   --muted: rgb(255 255 255 / 6%);
-  --muted-foreground: #8b93a3;
+  --muted-foreground: #8892a3;
   --accent: rgb(255 255 255 / 10%);
-  --accent-foreground: #f5f6f8;
+  --accent-foreground: #f1f5fa;
   --destructive: #ff5c5c;
 
   --border: rgb(255 255 255 / 9%);
   --input: rgb(255 255 255 / 12%);
-  --ring: rgb(255 122 61 / 55%);
+  --ring: rgb(76 180 255 / 55%);
 
   /* Charts: accent, amber, then neutrals that stay legible on the base. */
-  --chart-1: #ff7a3d;
-  --chart-2: #ffc145;
-  --chart-3: #7c869b;
-  --chart-4: #5a6478;
-  --chart-5: #3a4150;
+  --chart-1: #4cb4ff;
+  --chart-2: #a78bfa;
+  --chart-3: #5eead4;
+  --chart-4: #7c8aa3;
+  --chart-5: #465062;
 
   --radius: 0.875rem;
 }
@@ -222,8 +222,8 @@
     font-variant-numeric: tabular-nums;
     /* A faint warm bloom behind the base keeps flat black from looking dead. */
     background-image:
-      radial-gradient(70rem 40rem at 50% -10%, rgb(255 122 61 / 7%), transparent 60%),
-      radial-gradient(50rem 30rem at 100% 0%, rgb(255 193 69 / 4%), transparent 55%);
+      radial-gradient(70rem 40rem at 50% -10%, rgb(76 180 255 / 8%), transparent 60%),
+      radial-gradient(50rem 30rem at 100% 0%, rgb(167 139 250 / 5%), transparent 55%);
     background-attachment: fixed;
   }
 
@@ -305,17 +305,17 @@
 }
 
 /** The accent gradient used on primary actions and the countdown. */
-@utility ember {
+@utility brand-fill {
   background-image: linear-gradient(
     150deg,
     var(--primary-soft) 0%,
     var(--primary) 55%,
-    color-mix(in srgb, var(--primary) 88%, #d94f18) 100%
+    color-mix(in srgb, var(--primary) 88%, #1f6fd0) 100%
   );
 }
 
-@utility ember-text {
-  background-image: linear-gradient(120deg, var(--primary-soft), var(--alt));
+@utility brand-text {
+  background-image: linear-gradient(120deg, #a8dcff, var(--primary));
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;

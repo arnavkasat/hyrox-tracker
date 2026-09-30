@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 
+import { CheckinRing } from "./checkin-ring";
 import { CheckinSheet } from "./checkin-sheet";
 import { Button } from "@/components/ui/button";
 import { InsetGroup, InsetRow } from "@/components/ios/inset-list";
@@ -9,11 +10,11 @@ import { Screen } from "@/components/ios/screen";
 import {
   getAppContext,
   getCheckinForDate,
+  getPhotoForDate,
   getSessionForDate,
   hoursSinceSync,
 } from "@/lib/data/queries";
-import { diffDays, formatLongDate } from "@/lib/date";
-import { ENERGY_SCALE, SORENESS_SCALE, scaleLabel } from "@/lib/scales";
+import { diffDays, formatLongDate, isoWeekday } from "@/lib/date";
 import { TOTAL_WEEKS } from "@/lib/plan/template";
 
 const PHASE_LABEL: Record<string, string> = {
@@ -30,9 +31,13 @@ const SYNC_WARNING_HOURS = 36;
 export default async function TodayPage() {
   const { supabase, user, settings, today } = await getAppContext();
 
-  const [session, checkin] = await Promise.all([
+  // The weekly photo rides along with Sunday's check-in.
+  const isSunday = isoWeekday(today) === 7;
+
+  const [session, checkin, photo] = await Promise.all([
     getSessionForDate(supabase, user.id, today),
     getCheckinForDate(supabase, user.id, today),
+    isSunday ? getPhotoForDate(supabase, user.id, today) : Promise.resolve(null),
   ]);
 
   const daysToRace = diffDays(today, settings.race_date);
@@ -48,7 +53,7 @@ export default async function TodayPage() {
       {/* ------------------------------------------------ race countdown -- */}
       <div className="surface rounded-2xl p-5">
         <div className="flex items-baseline gap-2">
-          <span className="ember-text text-[60px] leading-none font-bold tracking-tight">
+          <span className="brand-text text-[60px] leading-none font-bold tracking-tight">
             {Math.max(daysToRace, 0)}
           </span>
           <span className="text-[17px] text-muted-foreground">
@@ -57,7 +62,7 @@ export default async function TodayPage() {
         </div>
 
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="ember h-full rounded-full" style={{ width: `${progress}%` }} />
+          <div className="brand-fill h-full rounded-full" style={{ width: `${progress}%` }} />
         </div>
 
         <div className="mt-2.5 flex items-center justify-between text-[13px] text-muted-foreground">
@@ -72,41 +77,28 @@ export default async function TodayPage() {
       <QuoteCard date={today} />
 
       {/* --------------------------------------------- morning check-in -- */}
-      {checkin ? (
-        <InsetGroup title="Morning check-in">
-          <InsetRow label="Weight" value={checkin.weight_kg ? `${checkin.weight_kg} kg` : "—"} />
-          <InsetRow label="Energy" value={scaleLabel(ENERGY_SCALE, checkin.energy)} />
-          <InsetRow label="Soreness" value={scaleLabel(SORENESS_SCALE, checkin.soreness)} />
-          {checkin.note ? <InsetRow label="Note" sublabel={checkin.note} /> : null}
-          <InsetRow>
-            <CheckinSheet
-              date={today}
-              existing={checkin}
-              defaultWeight={Number(settings.body_weight_kg ?? 73)}
-              trigger={
-                <button className="press text-[17px] font-medium text-primary">Edit</button>
+      <CheckinSheet
+        date={today}
+        existing={checkin}
+        defaultWeight={Number(settings.body_weight_kg ?? 73)}
+        photo={
+          isSunday
+            ? {
+                userId: user.id,
+                week: session?.week ?? null,
+                existingPath: photo?.storage_path ?? null,
               }
-            />
-          </InsetRow>
-        </InsetGroup>
-      ) : (
-        <div className="surface rounded-2xl p-5">
-          <h2 className="text-[20px] font-semibold">Morning check-in</h2>
-          <p className="mt-1 text-[15px] text-muted-foreground">
-            Weight, energy and soreness. It feeds the weekly review.
-          </p>
-          <CheckinSheet
-            date={today}
-            existing={null}
-            defaultWeight={Number(settings.body_weight_kg ?? 73)}
-            trigger={
-              <Button variant="ember" size="ios" className="mt-4 w-full">
-                Check in
-              </Button>
-            }
+            : undefined
+        }
+        trigger={
+          <CheckinRing
+            checkin={checkin}
+            needsPhoto={isSunday}
+            hasPhoto={Boolean(photo)}
+            className="py-2"
           />
-        </div>
-      )}
+        }
+      />
 
       {/* --------------------------------------------- today's session -- */}
       {session ? (
@@ -147,7 +139,7 @@ export default async function TodayPage() {
               Completed
             </p>
           ) : session.type !== "rest" ? (
-            <Button asChild variant="ember" size="ios" className="mt-4 w-full">
+            <Button asChild variant="brand" size="ios" className="mt-4 w-full">
               <Link href="/train">
                 {session.status === "in_progress" ? "Resume session" : "Start session"}
               </Link>

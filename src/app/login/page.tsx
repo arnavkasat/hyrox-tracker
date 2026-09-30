@@ -16,7 +16,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
       <div className="mx-auto w-full max-w-sm space-y-8">
         <div className="space-y-1.5 text-center">
           <div className="surface mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl">
-            <span className="ember-text text-[32px] leading-none font-bold">H</span>
+            <span className="brand-text text-[32px] leading-none font-bold">H</span>
           </div>
           <h1 className="text-[28px] font-bold tracking-tight">Hyrox Tracker</h1>
           <p className="text-[15px] text-muted-foreground">

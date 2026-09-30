@@ -98,6 +98,22 @@ export async function getCheckinForDate(
   return data as DailyCheckin | null;
 }
 
+export async function getPhotoForDate(
+  supabase: SupabaseClient,
+  userId: string,
+  date: ISODate,
+): Promise<{ storage_path: string } | null> {
+  const { data, error } = await supabase
+    .from("photos")
+    .select("storage_path")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getLogsForSession(
   supabase: SupabaseClient,
   sessionId: string,

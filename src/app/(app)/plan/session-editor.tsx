@@ -226,7 +226,7 @@ export function SessionEditor({
 
       {/* ------------------------------------------------------ actions -- */}
       <div className="space-y-2">
-        <Button variant="ember" size="ios" className="w-full" onClick={save} disabled={pending}>
+        <Button variant="brand" size="ios" className="w-full" onClick={save} disabled={pending}>
           {pending ? "Saving…" : "Save session"}
         </Button>
 
@@ -268,7 +268,7 @@ export function SessionEditor({
                 className={cn(
                   "press shrink-0 rounded-full px-3.5 py-2 text-[13px] font-medium whitespace-nowrap",
                   picker === category
-                    ? "ember text-primary-foreground"
+                    ? "brand-fill text-primary-foreground"
                     : "surface text-muted-foreground",
                 )}
               >

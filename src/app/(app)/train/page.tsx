@@ -20,6 +20,24 @@ export default async function TrainPage(props: PageProps<"/train">) {
   const { date } = await props.searchParams;
   const targetDate = typeof date === "string" ? date : today;
 
+  // You can log today or any day behind you, never one in front. The
+  // database enforces this too, so a hand-typed URL can't get around it.
+  if (targetDate > today) {
+    return (
+      <Screen title="Train" subtitle={formatLongDate(targetDate)}>
+        <InsetGroup footer="Come back on the day and it'll be waiting.">
+          <InsetRow
+            label="Not yet"
+            sublabel="You can't log a session before it happens."
+          />
+        </InsetGroup>
+        <Button asChild variant="glass" size="ios" className="w-full">
+          <Link href="/plan">Back to the plan</Link>
+        </Button>
+      </Screen>
+    );
+  }
+
   const session = await getSessionForDate(supabase, user.id, targetDate);
 
   if (!session) {

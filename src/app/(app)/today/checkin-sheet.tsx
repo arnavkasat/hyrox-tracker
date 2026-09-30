@@ -17,6 +17,7 @@ import {
 import { Rating } from "@/components/ios/rating";
 import { Stepper } from "@/components/ios/stepper";
 import { ENERGY_SCALE, SORENESS_SCALE } from "@/lib/scales";
+import { PhotoStep } from "./photo-step";
 import type { DailyCheckin } from "@/lib/supabase/types";
 
 export function CheckinSheet({
@@ -24,11 +25,18 @@ export function CheckinSheet({
   existing,
   defaultWeight,
   trigger,
+  photo,
 }: {
   date: string;
   existing: DailyCheckin | null;
   defaultWeight: number;
   trigger: React.ReactNode;
+  /** Present on Sundays, when the check-in also collects the weekly photo. */
+  photo?: {
+    userId: string;
+    week: number | null;
+    existingPath: string | null;
+  };
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -89,6 +97,16 @@ export function CheckinSheet({
               scale={SORENESS_SCALE}
             />
 
+            {photo ? (
+              <PhotoStep
+                date={date}
+                week={photo.week}
+                userId={photo.userId}
+                existingPath={photo.existingPath}
+                onUploaded={() => undefined}
+              />
+            ) : null}
+
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -100,7 +118,7 @@ export function CheckinSheet({
             <Button
               onClick={submit}
               disabled={pending}
-              variant="ember"
+              variant="brand"
               size="ios"
               className="w-full"
             >

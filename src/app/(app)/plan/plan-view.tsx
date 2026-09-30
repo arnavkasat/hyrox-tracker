@@ -195,8 +195,13 @@ export function PlanView({
                     ) : null}
 
                     <div className="space-y-2">
-                      {current.status !== "completed" && current.type !== "rest" ? (
-                        <Button asChild variant="ember" size="ios" className="w-full">
+                      {current.date > today ? (
+                        // Nothing to log until it has happened.
+                        <p className="surface rounded-2xl px-4 py-3 text-center text-[13px] text-muted-foreground">
+                          Logging opens on {formatLongDate(current.date)}.
+                        </p>
+                      ) : current.status !== "completed" && current.type !== "rest" ? (
+                        <Button asChild variant="brand" size="ios" className="w-full">
                           <Link href={`/train?date=${current.date}`}>
                             {current.date === today ? "Start session" : "Log this session"}
                           </Link>

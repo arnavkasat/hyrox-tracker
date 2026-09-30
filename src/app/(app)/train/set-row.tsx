@@ -62,7 +62,7 @@ export function SetRowItem({
           className={cn(
             "press flex size-11 shrink-0 items-center justify-center rounded-full border-2",
             row.completed
-              ? "ember border-transparent text-primary-foreground shadow-[0_4px_14px_-4px_rgb(255_122_61/70%)]"
+              ? "brand-fill border-transparent text-primary-foreground shadow-[0_4px_14px_-4px_rgb(76_180_255/65%)]"
               : "border-white/20 text-transparent",
           )}
         >

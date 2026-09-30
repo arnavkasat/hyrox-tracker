@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="ember" size="ios" className="w-full" disabled={pending}>
+    <Button type="submit" variant="brand" size="ios" className="w-full" disabled={pending}>
       {pending ? "Sending…" : "Send magic link"}
     </Button>
   );

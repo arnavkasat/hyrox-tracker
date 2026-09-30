@@ -35,6 +35,33 @@ export async function saveCheckin(input: CheckinInput) {
   revalidatePath("/progress");
 }
 
+/** Records a photo that the browser has already uploaded to the bucket. */
+export async function savePhoto(input: {
+  date: string;
+  week: number | null;
+  storage_path: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+
+  // The path always starts with the user's id — the storage policies depend
+  // on it, so refuse anything that claims otherwise.
+  if (!input.storage_path.startsWith(`${user.id}/`)) {
+    throw new Error("Refusing to record a photo outside your own folder.");
+  }
+
+  const { error } = await supabase
+    .from("photos")
+    .upsert({ user_id: user.id, ...input }, { onConflict: "storage_path" });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/today");
+  revalidatePath("/progress");
+}
+
 /** Corrects the seeded timezone once we can see the device's own. */
 export async function syncTimezone(timezone: string) {
   const supabase = await createClient();

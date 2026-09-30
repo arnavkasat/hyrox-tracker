@@ -170,7 +170,7 @@ export function WorkoutView({
             <>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="ember h-full rounded-full transition-[width] duration-300"
+                  className="brand-fill h-full rounded-full transition-[width] duration-300"
                   style={{ width: `${(completedCount / rows.length) * 100}%` }}
                 />
               </div>
@@ -216,7 +216,7 @@ export function WorkoutView({
         <Button
           onClick={onFinish}
           disabled={finishing}
-          variant="ember"
+          variant="brand"
           size="ios"
           className="w-full"
         >
