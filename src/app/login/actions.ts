@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export type LoginState = {
   status: "idle" | "sent" | "error";
@@ -25,7 +26,7 @@ export async function requestMagicLink(
     return { status: "error", message: "That address can't sign in to this app." };
   }
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const origin = await getSiteOrigin();
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithOtp({

@@ -30,7 +30,7 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | everything | `sb_publishable_…`, safe in the browser |
 | `SUPABASE_SECRET_KEY` | ingest, cron | `sb_secret_…`, server only — bypasses RLS |
 | `ALLOWED_EMAIL` | auth | The only address that can sign in |
-| `NEXT_PUBLIC_SITE_URL` | auth | Origin used to build the magic-link redirect |
+| `NEXT_PUBLIC_SITE_URL` | auth | Optional. Pins the magic-link origin; otherwise resolved from Vercel or the request |
 | `INGEST_TOKEN` | phase 2 | Bearer token for `POST /api/ingest` |
 | `ANTHROPIC_API_KEY` | phase 4 | Weekly review |
 | `CRON_SECRET` | phase 4 | Vercel sends this on cron requests |
