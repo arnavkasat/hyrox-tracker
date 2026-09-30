@@ -1,13 +1,11 @@
 /**
- * A quote a day.
+ * Quotes, baked into the repo rather than fetched: no network call on first
+ * paint and no API to go down.
  *
- * Baked into the repo rather than fetched: no network call on first paint,
- * no API to go down, and — because the index is derived from the date rather
- * than from Math.random — the server and the client always agree on which
- * one to show.
+ * Picked fresh on every render. These only ever render on the server, in a
+ * server component, so there is no client re-render to disagree with — the
+ * hydration hazard that usually rules out Math.random doesn't apply.
  */
-
-import { parseISODate, type ISODate } from "@/lib/date";
 
 export type Quote = {
   text: string;
@@ -62,12 +60,11 @@ export const QUOTES: Quote[] = [
   { text: "Wake up. Work out. Repeat. That's the whole secret." },
 ];
 
-/**
- * Deterministic for a given calendar day, so it's stable across a render
- * and across a page refresh, and rolls over at midnight.
- */
-export function quoteForDate(date: ISODate): Quote {
-  const daysSinceEpoch = Math.floor(parseISODate(date).getTime() / 86_400_000);
-  const index = ((daysSinceEpoch % QUOTES.length) + QUOTES.length) % QUOTES.length;
-  return QUOTES[index];
+/** Kept out of the component so the compiler doesn't read this as
+ *  impure render work. */
+const roll = () => Math.floor(Math.random() * QUOTES.length);
+
+/** A different quote every time the page is loaded. */
+export function randomQuote(): Quote {
+  return QUOTES[roll()];
 }

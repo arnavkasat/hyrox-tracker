@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 
 import { CheckinRing } from "./checkin-ring";
+import { StatRow } from "./stat-row";
 import { CheckinSheet } from "./checkin-sheet";
 import { Button } from "@/components/ui/button";
 import { InsetGroup, InsetRow } from "@/components/ios/inset-list";
@@ -11,10 +12,12 @@ import {
   getAppContext,
   getCheckinForDate,
   getPhotoForDate,
+  getRecentCheckins,
   getSessionForDate,
   hoursSinceSync,
 } from "@/lib/data/queries";
-import { diffDays, formatLongDate, isoWeekday } from "@/lib/date";
+import { addDays, diffDays, formatLongDate, isoWeekday } from "@/lib/date";
+import { readinessBand, readinessScore, rollingAverage } from "@/lib/readiness";
 import { TOTAL_WEEKS } from "@/lib/plan/template";
 
 const PHASE_LABEL: Record<string, string> = {
@@ -34,11 +37,23 @@ export default async function TodayPage() {
   // The weekly photo rides along with Sunday's check-in.
   const isSunday = isoWeekday(today) === 7;
 
-  const [session, checkin, photo] = await Promise.all([
+  const [session, checkin, photo, recentCheckins] = await Promise.all([
     getSessionForDate(supabase, user.id, today),
     getCheckinForDate(supabase, user.id, today),
     isSunday ? getPhotoForDate(supabase, user.id, today) : Promise.resolve(null),
+    getRecentCheckins(supabase, user.id, addDays(today, -13)),
   ]);
+
+  const score = readinessScore(checkin?.energy, checkin?.soreness);
+  const band = readinessBand(score);
+
+  // Two 7-day averages side by side say more than today's number alone.
+  const weights = recentCheckins
+    .map((c) => (c.weight_kg == null ? null : Number(c.weight_kg)))
+    .filter((w): w is number => w !== null);
+  const thisWeek = rollingAverage(weights, 7);
+  const lastWeek = rollingAverage(weights.slice(0, -7), 7);
+  const weightDelta = thisWeek != null && lastWeek != null ? thisWeek - lastWeek : null;
 
   const daysToRace = diffDays(today, settings.race_date);
   const totalDays = diffDays(settings.training_start_date, settings.race_date);
@@ -74,7 +89,39 @@ export default async function TodayPage() {
         </div>
       </div>
 
-      <QuoteCard date={today} />
+      {checkin ? (
+        <StatRow
+          stats={[
+            {
+              label: "Weight",
+              value: checkin.weight_kg != null ? `${checkin.weight_kg}` : "—",
+              sub: thisWeek != null ? `${thisWeek.toFixed(1)} kg 7-day avg` : "kg",
+            },
+            {
+              label: "Readiness",
+              value: score != null ? `${score}` : "—",
+              sub: band?.label,
+              accent: true,
+            },
+            {
+              label: "Trend",
+              value:
+                weightDelta == null
+                  ? "—"
+                  : `${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)}`,
+              sub: weightDelta == null ? "needs 2 weeks" : "kg vs last week",
+            },
+          ]}
+        />
+      ) : null}
+
+      {band ? (
+        <p className="-mt-3 px-1 text-center text-[13px] text-muted-foreground">
+          {band.hint}
+        </p>
+      ) : null}
+
+      <QuoteCard />
 
       {/* --------------------------------------------- morning check-in -- */}
       <CheckinSheet

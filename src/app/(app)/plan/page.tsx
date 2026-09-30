@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
+
 import { PlanView } from "./plan-view";
 import { Screen } from "@/components/ios/screen";
 import { getAllSessions, getAppContext } from "@/lib/data/queries";
@@ -14,6 +17,15 @@ export default async function PlanPage() {
     <Screen
       title="Plan"
       subtitle={`${completed} of ${sessions.length} sessions done · ${weeksLeft} weeks to go`}
+      action={
+        <Link
+          href="/plan/builder"
+          aria-label="Build your own week"
+          className="press surface flex size-10 items-center justify-center rounded-full text-primary"
+        >
+          <SlidersHorizontal className="size-5" />
+        </Link>
+      }
     >
       <PlanView sessions={sessions} today={today} />
     </Screen>

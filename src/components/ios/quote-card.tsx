@@ -1,11 +1,10 @@
 import { Quote as QuoteIcon } from "lucide-react";
-import { quoteForDate } from "@/lib/quotes";
-import type { ISODate } from "@/lib/date";
+import { randomQuote } from "@/lib/quotes";
 import { cn } from "@/lib/utils";
 
-/** The day's quote. Same one all day, new one tomorrow. */
-export function QuoteCard({ date, className }: { date: ISODate; className?: string }) {
-  const quote = quoteForDate(date);
+/** A new quote on every load. */
+export function QuoteCard({ className }: { className?: string }) {
+  const quote = randomQuote();
 
   return (
     <figure className={cn("surface rounded-2xl p-5", className)}>

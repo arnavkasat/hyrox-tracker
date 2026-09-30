@@ -24,6 +24,8 @@ export type Settings = {
   easy_pace_max_sec: number;
   race_pace_sec: number;
   last_sync_at: string | null;
+  /** Null means the built-in 20-week Hyrox block. */
+  plan_template: unknown | null;
   created_at: string;
   updated_at: string;
 };

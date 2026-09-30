@@ -98,6 +98,23 @@ export async function getCheckinForDate(
   return data as DailyCheckin | null;
 }
 
+/** Check-ins from the last `days` days, oldest first. */
+export async function getRecentCheckins(
+  supabase: SupabaseClient,
+  userId: string,
+  from: ISODate,
+): Promise<DailyCheckin[]> {
+  const { data, error } = await supabase
+    .from("daily_checkins")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("date", from)
+    .order("date");
+
+  if (error) throw error;
+  return (data ?? []) as DailyCheckin[];
+}
+
 export async function getPhotoForDate(
   supabase: SupabaseClient,
   userId: string,

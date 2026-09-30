@@ -1,6 +1,5 @@
 import { LoginForm } from "./login-form";
 import { QuoteCard } from "@/components/ios/quote-card";
-import { today as todayIn } from "@/lib/date";
 
 const ERRORS: Record<string, string> = {
   not_allowed: "That account can't sign in to this app.",
@@ -26,7 +25,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
 
         <LoginForm initialError={initialError} />
 
-        <QuoteCard date={todayIn()} />
+        <QuoteCard />
       </div>
     </main>
   );

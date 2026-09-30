@@ -188,18 +188,25 @@
   --input: rgb(255 255 255 / 12%);
   --ring: rgb(76 180 255 / 55%);
 
-  /* Charts: accent, amber, then neutrals that stay legible on the base. */
-  --chart-1: #4cb4ff;
-  --chart-2: #a78bfa;
-  --chart-3: #5eead4;
-  --chart-4: #7c8aa3;
-  --chart-5: #465062;
+  /* Categorical chart slots, in fixed order. Deliberately deeper than the
+     UI accent: validated against this surface for the OKLCH dark band,
+     chroma floor, colour-vision separation and contrast. Assign in order,
+     never cycle. Single-series charts use --primary instead. */
+  --chart-1: #2389e2;
+  --chart-2: #ca5794;
+  --chart-3: #b87501;
+  --chart-4: #06a05c;
+  --chart-5: #6b7689;
+
+  /* Recessive chart chrome. */
+  --grid: rgb(255 255 255 / 7%);
 
   --radius: 0.875rem;
 }
 
 @theme inline {
   --color-alt: var(--alt);
+  --color-grid: var(--grid);
   --color-raised: var(--raised);
   --color-hairline: var(--hairline);
   --color-material: var(--material);
