@@ -10,7 +10,8 @@
     "db:sql": "node scripts/print-sql.mjs",
     "db:link": "supabase link",
     "db:push": "supabase db push",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:health": "tsx --tsconfig tsconfig.json scripts/test-health-parse.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -39,6 +40,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.7",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
