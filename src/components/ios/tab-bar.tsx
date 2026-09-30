@@ -12,29 +12,38 @@ import {
 } from "lucide-react";
 
 import { SLIDE_SPRING } from "@/components/ios/motion";
+import { TAB_ORDER, directionType, tabIndexFor } from "@/lib/tabs";
 import { cn } from "@/lib/utils";
 
-const TABS = [
-  { href: "/today", label: "Today", Icon: CalendarCheck },
-  { href: "/plan", label: "Plan", Icon: CalendarDays },
-  { href: "/train", label: "Train", Icon: Dumbbell },
-  { href: "/progress", label: "Progress", Icon: ChartNoAxesColumn },
-  { href: "/review", label: "Review", Icon: Sparkles },
-] as const;
+const ICONS = {
+  "/today": { label: "Today", Icon: CalendarCheck },
+  "/plan": { label: "Plan", Icon: CalendarDays },
+  "/train": { label: "Train", Icon: Dumbbell },
+  "/progress": { label: "Progress", Icon: ChartNoAxesColumn },
+  "/review": { label: "Review", Icon: Sparkles },
+} as const;
 
 export function TabBar() {
   const pathname = usePathname();
+  const current = tabIndexFor(pathname);
 
   return (
-    <nav className="glass fixed inset-x-0 bottom-0 z-30 border-t border-hairline pb-safe">
+    <nav
+      // Named so the view transition holds it still while pages slide
+      // underneath; a tab bar that slides with the content is disorienting.
+      style={{ viewTransitionName: "tab-bar" }}
+      className="glass fixed inset-x-0 bottom-0 z-30 border-t border-hairline pb-safe"
+    >
       <ul className="mx-auto flex max-w-lg">
-        {TABS.map(({ href, label, Icon }) => {
-          const active = pathname.startsWith(href);
+        {TAB_ORDER.map((href, index) => {
+          const { label, Icon } = ICONS[href];
+          const active = index === current;
 
           return (
             <li key={href} className="flex-1">
               <Link
                 href={href}
+                transitionTypes={[directionType(current, index)]}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex h-[52px] flex-col items-center justify-center gap-1",
