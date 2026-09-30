@@ -1,5 +1,4 @@
--- Two things: stop sessions being logged before they happen, and create the
--- private bucket weekly photos go into.
+-- Stop sessions being logged before they happen.
 --
 -- Safe to run more than once.
 
@@ -62,51 +61,3 @@ drop trigger if exists plan_sessions_reject_future_status on public.plan_session
 create trigger plan_sessions_reject_future_status
   before update on public.plan_sessions
   for each row execute function public.reject_future_session_status();
-
-
--- -------------------------------------------------- private photos bucket --
--- Files are stored as "<user_id>/<filename>", and the policies below are what
--- make that path prefix meaningful rather than a convention.
-
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('photos', 'photos', false, 5242880, array['image/jpeg', 'image/webp'])
-on conflict (id) do update
-  set file_size_limit = excluded.file_size_limit,
-      allowed_mime_types = excluded.allowed_mime_types;
-
-do $$
-declare
-  policy_name text;
-  action text;
-begin
-  foreach action in array array['select', 'insert', 'update', 'delete']
-  loop
-    policy_name := 'photos_own_files_' || action;
-    execute format('drop policy if exists %I on storage.objects', policy_name);
-  end loop;
-
-  execute $p$
-    create policy photos_own_files_select on storage.objects for select to authenticated
-      using (bucket_id = 'photos'
-             and (select auth.uid())::text = (storage.foldername(name))[1])
-  $p$;
-
-  execute $p$
-    create policy photos_own_files_insert on storage.objects for insert to authenticated
-      with check (bucket_id = 'photos'
-                  and (select auth.uid())::text = (storage.foldername(name))[1])
-  $p$;
-
-  execute $p$
-    create policy photos_own_files_update on storage.objects for update to authenticated
-      using (bucket_id = 'photos'
-             and (select auth.uid())::text = (storage.foldername(name))[1])
-  $p$;
-
-  execute $p$
-    create policy photos_own_files_delete on storage.objects for delete to authenticated
-      using (bucket_id = 'photos'
-             and (select auth.uid())::text = (storage.foldername(name))[1])
-  $p$;
-end;
-$$;
