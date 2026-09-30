@@ -40,7 +40,7 @@ npm run dev
 Migrations live in `supabase/migrations`. Either link the CLI:
 
 ```bash
-npm run db:link    # asks for your database password
+npm run db:link    # asks for your project ref and database password
 npm run db:push
 ```
 

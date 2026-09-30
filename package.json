@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:sql": "node scripts/print-sql.mjs",
-    "db:link": "supabase link --project-ref hzdvnsbxqwczfnvidybd",
+    "db:link": "supabase link",
     "db:push": "supabase db push",
     "typecheck": "tsc --noEmit"
   },
