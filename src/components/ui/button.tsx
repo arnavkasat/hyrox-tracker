@@ -18,6 +18,12 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // Primary call to action: warm gradient, glow, spring press.
+        ember:
+          "ember press-lg border-white/10 font-semibold text-primary-foreground shadow-[0_8px_28px_-10px_rgb(255_122_61/60%)] active:translate-y-0",
+        // Secondary action that still reads as a raised material.
+        glass:
+          "surface press font-medium text-foreground active:translate-y-0",
       },
       size: {
         default:
@@ -31,6 +37,8 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        // Full-width 44pt+ control, the default on phone screens.
+        ios: "h-12 gap-2 rounded-xl px-5 text-[17px]",
       },
     },
     defaultVariants: {

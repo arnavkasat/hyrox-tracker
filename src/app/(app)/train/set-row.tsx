@@ -39,7 +39,7 @@ export function SetRowItem({
         <button
           type="button"
           onClick={onExpand}
-          className="flex min-w-0 flex-1 items-center gap-3 text-left active:opacity-60"
+          className="press flex min-w-0 flex-1 items-center gap-3 text-left"
         >
           <span className="w-10 shrink-0 text-[13px] text-muted-foreground">
             Set {row.set_number}
@@ -60,10 +60,10 @@ export function SetRowItem({
           aria-label={`${row.completed ? "Undo" : "Complete"} set ${row.set_number}`}
           aria-pressed={row.completed}
           className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-full border-2 transition active:scale-90",
+            "press flex size-11 shrink-0 items-center justify-center rounded-full border-2",
             row.completed
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border text-transparent",
+              ? "ember border-transparent text-primary-foreground shadow-[0_4px_14px_-4px_rgb(255_122_61/70%)]"
+              : "border-white/20 text-transparent",
           )}
         >
           <Check className="size-5" strokeWidth={3} />

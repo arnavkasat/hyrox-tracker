@@ -39,7 +39,7 @@ export function Screen({
           collapsed ? "opacity-100" : "opacity-0",
         )}
       >
-        <div className="flex h-11 items-center justify-center border-b border-border bg-background/80 px-4 backdrop-blur-xl">
+        <div className="glass flex h-11 items-center justify-center border-b border-hairline px-4">
           <span className="text-[17px] font-semibold">{title}</span>
         </div>
       </header>

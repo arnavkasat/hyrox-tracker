@@ -30,6 +30,9 @@ export type Settings = {
 
 export type SessionStatus = "planned" | "in_progress" | "completed" | "skipped";
 
+/** Which writer last owned this row — see 20260930090000_plan_origin.sql. */
+export type SessionOrigin = "generated" | "user" | "review";
+
 export type PlanSession = {
   id: string;
   user_id: string;
@@ -41,6 +44,7 @@ export type PlanSession = {
   planned: PlannedExercise[];
   notes: string | null;
   status: SessionStatus;
+  origin: SessionOrigin;
   with_partner: boolean;
   started_at: string | null;
   completed_at: string | null;

@@ -48,6 +48,40 @@ export async function getSessionForDate(
   return data as PlanSession | null;
 }
 
+/** Every planned session, oldest first. ~140 rows for a 20-week block. */
+export async function getAllSessions(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<PlanSession[]> {
+  const { data, error } = await supabase
+    .from("plan_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("date");
+
+  if (error) throw error;
+  return (data ?? []) as PlanSession[];
+}
+
+/** The sessions making up the given plan weeks, for week-level validation. */
+export async function getSessionsInWeeks(
+  supabase: SupabaseClient,
+  userId: string,
+  weeks: number[],
+): Promise<PlanSession[]> {
+  if (weeks.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("plan_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .in("week", weeks)
+    .order("date");
+
+  if (error) throw error;
+  return (data ?? []) as PlanSession[];
+}
+
 export async function getCheckinForDate(
   supabase: SupabaseClient,
   userId: string,

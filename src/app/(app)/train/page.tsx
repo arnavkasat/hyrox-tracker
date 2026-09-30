@@ -28,7 +28,7 @@ export default async function TrainPage(props: PageProps<"/train">) {
         <InsetGroup>
           <InsetRow label="Nothing planned" sublabel="No session exists for this date." />
         </InsetGroup>
-        <Button asChild variant="secondary" size="lg" className="h-12 w-full text-[17px]">
+        <Button asChild variant="glass" size="ios" className="w-full">
           <Link href="/today">Back to today</Link>
         </Button>
       </Screen>
@@ -38,12 +38,12 @@ export default async function TrainPage(props: PageProps<"/train">) {
   if (session.planned.length === 0) {
     return (
       <Screen title={session.title} subtitle={formatLongDate(targetDate)}>
-        <div className="rounded-2xl bg-card p-5">
+        <div className="surface rounded-2xl p-5">
           <p className="text-[17px]">
             {session.notes ?? "Nothing to log today. Rest is part of the plan."}
           </p>
         </div>
-        <Button asChild variant="secondary" size="lg" className="h-12 w-full text-[17px]">
+        <Button asChild variant="glass" size="ios" className="w-full">
           <Link href="/today">Back to today</Link>
         </Button>
       </Screen>

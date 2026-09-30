@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/drawer";
 import { Rating } from "@/components/ios/rating";
 import { Stepper } from "@/components/ios/stepper";
+import { ENERGY_SCALE, SORENESS_SCALE } from "@/lib/scales";
 import type { DailyCheckin } from "@/lib/supabase/types";
 
 export function CheckinSheet({
@@ -80,19 +81,12 @@ export function CheckinSheet({
               />
             </div>
 
-            <Rating
-              label="Energy"
-              value={energy}
-              onChange={setEnergy}
-              lowLabel="flat"
-              highLabel="buzzing"
-            />
+            <Rating label="Energy" value={energy} onChange={setEnergy} scale={ENERGY_SCALE} />
             <Rating
               label="Soreness"
               value={soreness}
               onChange={setSoreness}
-              lowLabel="fresh"
-              highLabel="wrecked"
+              scale={SORENESS_SCALE}
             />
 
             <Textarea
@@ -106,8 +100,9 @@ export function CheckinSheet({
             <Button
               onClick={submit}
               disabled={pending}
-              size="lg"
-              className="h-12 w-full text-[17px]"
+              variant="ember"
+              size="ios"
+              className="w-full"
             >
               {pending ? "Saving…" : "Save check-in"}
             </Button>

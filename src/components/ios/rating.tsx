@@ -1,49 +1,45 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import type { ScalePoint } from "@/lib/scales";
 
-/** 1-5 segmented picker for energy and soreness. */
+/** Segmented 1-5 picker that shows words instead of numbers. */
 export function Rating({
   value,
   onChange,
   label,
-  lowLabel,
-  highLabel,
+  scale,
 }: {
   value: number | null;
   onChange: (n: number) => void;
   label: string;
-  lowLabel?: string;
-  highLabel?: string;
+  scale: ScalePoint[];
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-baseline justify-between">
-        <span className="text-[17px]">{label}</span>
-        {lowLabel && highLabel ? (
-          <span className="text-[13px] text-muted-foreground">
-            {lowLabel} → {highLabel}
-          </span>
-        ) : null}
-      </div>
-      <div className="flex gap-2">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            type="button"
-            aria-label={`${label} ${n} of 5`}
-            aria-pressed={value === n}
-            onClick={() => onChange(n)}
-            className={cn(
-              "h-12 flex-1 rounded-lg text-[17px] font-semibold transition active:scale-95",
-              value === n
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground",
-            )}
-          >
-            {n}
-          </button>
-        ))}
+      <span className="text-[17px]">{label}</span>
+
+      <div className="flex gap-1.5">
+        {scale.map((point) => {
+          const active = value === point.value;
+          return (
+            <button
+              key={point.value}
+              type="button"
+              aria-label={`${label}: ${point.description}`}
+              aria-pressed={active}
+              onClick={() => onChange(point.value)}
+              className={cn(
+                "press h-13 flex-1 rounded-xl px-0.5 text-[11px] font-semibold tracking-tight",
+                active
+                  ? "ember text-primary-foreground shadow-[0_6px_18px_-8px_rgb(255_122_61/70%)]"
+                  : "surface text-muted-foreground",
+              )}
+            >
+              {point.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

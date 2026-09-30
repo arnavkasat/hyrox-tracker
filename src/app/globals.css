@@ -130,9 +130,15 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Hyrox Tracker theme: true black, white, one lime accent.
-   Dark is the only theme that ships today; the light tokens above are left in
-   place so a toggle is a small change rather than a rewrite.
+   Hyrox Tracker — "Ember" theme.
+
+   Cool near-black base, warm tangerine accent. Surfaces are translucent
+   materials layered over the base rather than flat fills, so chrome that
+   actually has content behind it (tab bar, sticky headers, sheets) reads as
+   glass, and cards in the content flow still get the same tint and hairline.
+
+   Dark is the only theme that ships; the light tokens above are left intact
+   so adding a toggle stays a small change.
    --------------------------------------------------------------------------- */
 
 :root {
@@ -140,64 +146,87 @@
     -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
 
-  /* iOS-ish easing for sheets and taps. */
+  /* iOS sheet/press easing. */
   --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .dark {
-  --background: oklch(0 0 0);
-  --foreground: oklch(1 0 0);
+  /* Base */
+  --background: #0b0d12;
+  --foreground: #f5f6f8;
 
-  /* Grouped-list surfaces, roughly iOS systemGray6 / systemGray5. */
-  --card: oklch(0.19 0 0);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.19 0 0);
-  --popover-foreground: oklch(1 0 0);
+  /* Raised surfaces */
+  --raised: #161a22;
+  --card: #161a22;
+  --card-foreground: #f5f6f8;
+  --popover: #1a1f29;
+  --popover-foreground: #f5f6f8;
 
-  /* Lime is the only accent in the app. */
-  --primary: oklch(0.88 0.216 128);
-  --primary-foreground: oklch(0.16 0.04 128);
+  /* Translucent materials, layered over --background */
+  --material-thin: rgb(255 255 255 / 3.5%);
+  --material: rgb(255 255 255 / 6.5%);
+  --material-thick: rgb(255 255 255 / 11%);
+  --hairline: rgb(255 255 255 / 9%);
+  --highlight: rgb(255 255 255 / 7%);
 
-  --secondary: oklch(0.26 0 0);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.26 0 0);
-  --muted-foreground: oklch(0.68 0 0);
-  --accent: oklch(0.28 0 0);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.65 0.21 25);
+  /* Accent */
+  --primary: #ff7a3d;
+  --primary-foreground: #1a0a02;
+  --primary-soft: #ff9a5c;
+  --alt: #ffc145;
 
-  --border: oklch(1 0 0 / 11%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.88 0.216 128 / 60%);
+  --secondary: rgb(255 255 255 / 7%);
+  --secondary-foreground: #f5f6f8;
+  --muted: rgb(255 255 255 / 6%);
+  --muted-foreground: #8b93a3;
+  --accent: rgb(255 255 255 / 10%);
+  --accent-foreground: #f5f6f8;
+  --destructive: #ff5c5c;
 
-  --chart-1: oklch(0.88 0.216 128);
-  --chart-2: oklch(0.72 0 0);
-  --chart-3: oklch(0.52 0 0);
-  --chart-4: oklch(0.65 0.14 128);
-  --chart-5: oklch(0.38 0 0);
+  --border: rgb(255 255 255 / 9%);
+  --input: rgb(255 255 255 / 12%);
+  --ring: rgb(255 122 61 / 55%);
 
-  --radius: 0.75rem;
+  /* Charts: accent, amber, then neutrals that stay legible on the base. */
+  --chart-1: #ff7a3d;
+  --chart-2: #ffc145;
+  --chart-3: #7c869b;
+  --chart-4: #5a6478;
+  --chart-5: #3a4150;
+
+  --radius: 0.875rem;
 }
 
 @theme inline {
-  --color-lime: var(--primary);
+  --color-alt: var(--alt);
+  --color-raised: var(--raised);
+  --color-hairline: var(--hairline);
+  --color-material: var(--material);
+  --color-material-thin: var(--material-thin);
+  --color-material-thick: var(--material-thick);
+  --ease-ios: var(--ease-ios);
+  --ease-spring: var(--ease-spring);
 }
 
 @layer base {
   html {
     color-scheme: dark;
-    /* Stop the whole page rubber-banding under the tab bar. */
     overscroll-behavior-y: none;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
     overscroll-behavior-y: none;
-    /* Tabular figures keep weights and timers from jittering as they change. */
+    /* Tabular figures stop weights and timers jittering as they change. */
     font-variant-numeric: tabular-nums;
+    /* A faint warm bloom behind the base keeps flat black from looking dead. */
+    background-image:
+      radial-gradient(70rem 40rem at 50% -10%, rgb(255 122 61 / 7%), transparent 60%),
+      radial-gradient(50rem 30rem at 100% 0%, rgb(255 193 69 / 4%), transparent 55%);
+    background-attachment: fixed;
   }
 
-  /* No blue flash on tap, and no accidental text selection while logging sets. */
   button,
   a,
   [role="button"] {
@@ -205,13 +234,94 @@
     -webkit-touch-callout: none;
   }
 
-  /* Inputs at >=16px so iOS Safari doesn't zoom when they're focused. */
+  /* >=16px keeps iOS Safari from zooming when an input takes focus. */
   input,
   textarea,
   select {
     font-size: max(16px, 1rem);
   }
 }
+
+/* --------------------------------------------------------------- materials */
+
+/** Chrome with real content behind it: tab bar, sticky headers, sheets. */
+@utility glass {
+  background-color: color-mix(in srgb, var(--raised) 72%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/** A card in the content flow. Nothing to blur behind it, so the tint,
+    hairline and top highlight do the work instead. */
+@utility surface {
+  background-color: var(--material);
+  border: 1px solid var(--hairline);
+  box-shadow:
+    inset 0 1px 0 0 var(--highlight),
+    0 1px 2px 0 rgb(0 0 0 / 40%);
+}
+
+@utility surface-thick {
+  background-color: var(--material-thick);
+  border: 1px solid var(--hairline);
+  box-shadow:
+    inset 0 1px 0 0 var(--highlight),
+    0 4px 16px -4px rgb(0 0 0 / 50%);
+}
+
+/** Press feedback. Cheap to animate — transform and filter only. */
+@utility press {
+  transition:
+    transform 150ms var(--ease-ios),
+    filter 150ms var(--ease-ios),
+    background-color 150ms var(--ease-ios);
+
+  &:active {
+    transform: scale(0.965);
+    filter: brightness(1.12);
+  }
+
+  &:disabled {
+    transform: none;
+    filter: none;
+  }
+}
+
+/** Stronger press for the big primary buttons. */
+@utility press-lg {
+  transition:
+    transform 180ms var(--ease-spring),
+    filter 150ms var(--ease-ios);
+
+  &:active {
+    transform: scale(0.955);
+    filter: brightness(1.08);
+  }
+
+  &:disabled {
+    transform: none;
+    filter: none;
+  }
+}
+
+/** The accent gradient used on primary actions and the countdown. */
+@utility ember {
+  background-image: linear-gradient(
+    150deg,
+    var(--primary-soft) 0%,
+    var(--primary) 55%,
+    color-mix(in srgb, var(--primary) 88%, #d94f18) 100%
+  );
+}
+
+@utility ember-text {
+  background-image: linear-gradient(120deg, var(--primary-soft), var(--alt));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* --------------------------------------------------------------- safe area */
 
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
@@ -221,11 +331,6 @@
   padding-top: env(safe-area-inset-top);
 }
 
-@utility h-tabbar {
-  height: calc(3.25rem + env(safe-area-inset-bottom));
-}
-
-/* Leaves room for the fixed tab bar at the bottom of every scroll view. */
 @utility pb-tabbar {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }

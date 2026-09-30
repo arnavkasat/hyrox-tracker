@@ -22,10 +22,8 @@ export function RestTimer({
       <div className="mx-auto max-w-lg px-4 pb-[60px]">
         <div
           className={cn(
-            "pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-2.5 shadow-lg backdrop-blur-xl",
-            done
-              ? "border-primary/40 bg-primary/15"
-              : "border-border bg-card/90",
+            "glass pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-2.5 shadow-xl",
+            done ? "border-primary/45 bg-primary/12" : "border-hairline",
           )}
         >
           <div className="min-w-0 flex-1">
@@ -46,7 +44,7 @@ export function RestTimer({
             type="button"
             onClick={onAdd}
             aria-label="Add 30 seconds"
-            className="flex h-11 items-center gap-1 rounded-lg bg-secondary px-3 text-[15px] font-medium active:scale-95"
+            className="press surface flex h-11 items-center gap-1 rounded-xl px-3 text-[15px] font-medium"
           >
             <Plus className="size-4" />
             30s
@@ -56,7 +54,7 @@ export function RestTimer({
             type="button"
             onClick={onDismiss}
             aria-label="Dismiss rest timer"
-            className="flex size-11 items-center justify-center rounded-lg bg-secondary active:scale-95"
+            className="press surface flex size-11 items-center justify-center rounded-xl"
           >
             <X className="size-5" />
           </button>

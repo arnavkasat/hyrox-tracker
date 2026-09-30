@@ -4,6 +4,7 @@ import { AlertTriangle, ChevronRight } from "lucide-react";
 import { CheckinSheet } from "./checkin-sheet";
 import { Button } from "@/components/ui/button";
 import { InsetGroup, InsetRow } from "@/components/ios/inset-list";
+import { QuoteCard } from "@/components/ios/quote-card";
 import { Screen } from "@/components/ios/screen";
 import {
   getAppContext,
@@ -12,6 +13,7 @@ import {
   hoursSinceSync,
 } from "@/lib/data/queries";
 import { diffDays, formatLongDate } from "@/lib/date";
+import { ENERGY_SCALE, SORENESS_SCALE, scaleLabel } from "@/lib/scales";
 import { TOTAL_WEEKS } from "@/lib/plan/template";
 
 const PHASE_LABEL: Record<string, string> = {
@@ -44,9 +46,9 @@ export default async function TodayPage() {
   return (
     <Screen title="Today" subtitle={formatLongDate(today)}>
       {/* ------------------------------------------------ race countdown -- */}
-      <div className="rounded-2xl bg-card p-5">
+      <div className="surface rounded-2xl p-5">
         <div className="flex items-baseline gap-2">
-          <span className="text-[56px] leading-none font-bold tracking-tight text-primary">
+          <span className="ember-text text-[60px] leading-none font-bold tracking-tight">
             {Math.max(daysToRace, 0)}
           </span>
           <span className="text-[17px] text-muted-foreground">
@@ -54,8 +56,8 @@ export default async function TodayPage() {
           </span>
         </div>
 
-        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary">
-          <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="ember h-full rounded-full" style={{ width: `${progress}%` }} />
         </div>
 
         <div className="mt-2.5 flex items-center justify-between text-[13px] text-muted-foreground">
@@ -67,12 +69,14 @@ export default async function TodayPage() {
         </div>
       </div>
 
+      <QuoteCard date={today} />
+
       {/* --------------------------------------------- morning check-in -- */}
       {checkin ? (
         <InsetGroup title="Morning check-in">
           <InsetRow label="Weight" value={checkin.weight_kg ? `${checkin.weight_kg} kg` : "—"} />
-          <InsetRow label="Energy" value={checkin.energy ? `${checkin.energy} / 5` : "—"} />
-          <InsetRow label="Soreness" value={checkin.soreness ? `${checkin.soreness} / 5` : "—"} />
+          <InsetRow label="Energy" value={scaleLabel(ENERGY_SCALE, checkin.energy)} />
+          <InsetRow label="Soreness" value={scaleLabel(SORENESS_SCALE, checkin.soreness)} />
           {checkin.note ? <InsetRow label="Note" sublabel={checkin.note} /> : null}
           <InsetRow>
             <CheckinSheet
@@ -80,13 +84,13 @@ export default async function TodayPage() {
               existing={checkin}
               defaultWeight={Number(settings.body_weight_kg ?? 73)}
               trigger={
-                <button className="text-[17px] text-primary active:opacity-60">Edit</button>
+                <button className="press text-[17px] font-medium text-primary">Edit</button>
               }
             />
           </InsetRow>
         </InsetGroup>
       ) : (
-        <div className="rounded-2xl bg-card p-5">
+        <div className="surface rounded-2xl p-5">
           <h2 className="text-[20px] font-semibold">Morning check-in</h2>
           <p className="mt-1 text-[15px] text-muted-foreground">
             Weight, energy and soreness. It feeds the weekly review.
@@ -96,7 +100,7 @@ export default async function TodayPage() {
             existing={null}
             defaultWeight={Number(settings.body_weight_kg ?? 73)}
             trigger={
-              <Button size="lg" className="mt-4 h-12 w-full text-[17px]">
+              <Button variant="ember" size="ios" className="mt-4 w-full">
                 Check in
               </Button>
             }
@@ -106,11 +110,20 @@ export default async function TodayPage() {
 
       {/* --------------------------------------------- today's session -- */}
       {session ? (
-        <div className="rounded-2xl bg-card p-5">
-          <p className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
-            Today&rsquo;s session
-          </p>
-          <h2 className="mt-1 text-[22px] font-semibold">{session.title}</h2>
+        <div className="surface rounded-2xl p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+                Today&rsquo;s session
+              </p>
+              <h2 className="mt-1 text-[22px] font-semibold">{session.title}</h2>
+            </div>
+            {session.with_partner ? (
+              <span className="shrink-0 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                PARTNER
+              </span>
+            ) : null}
+          </div>
 
           {session.planned.length > 0 ? (
             <ul className="mt-3 space-y-1.5">
@@ -129,20 +142,16 @@ export default async function TodayPage() {
             </p>
           )}
 
-          {session.with_partner ? (
-            <p className="mt-3 text-[13px] text-primary">With partner</p>
-          ) : null}
-
-          {session.type !== "rest" ? (
-            <Button asChild size="lg" className="mt-4 h-12 w-full text-[17px]">
+          {session.status === "completed" ? (
+            <p className="mt-4 text-center text-[15px] font-medium text-primary">
+              Completed
+            </p>
+          ) : session.type !== "rest" ? (
+            <Button asChild variant="ember" size="ios" className="mt-4 w-full">
               <Link href="/train">
                 {session.status === "in_progress" ? "Resume session" : "Start session"}
               </Link>
             </Button>
-          ) : null}
-
-          {session.status === "completed" ? (
-            <p className="mt-3 text-center text-[15px] text-primary">Completed</p>
           ) : null}
         </div>
       ) : (
@@ -156,8 +165,8 @@ export default async function TodayPage() {
 
       {/* ------------------------------------------------- sync warning -- */}
       {syncStale ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-primary" />
+        <div className="surface flex items-start gap-3 rounded-2xl p-4">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-alt" />
           <div className="min-w-0 flex-1">
             <p className="text-[15px] font-medium">
               {sinceSync === null
@@ -176,7 +185,7 @@ export default async function TodayPage() {
         <form action="/auth/signout" method="post">
           <button
             type="submit"
-            className="flex min-h-[44px] w-full items-center justify-between px-4 py-2.5 text-[17px] active:opacity-60"
+            className="press flex min-h-[44px] w-full items-center justify-between px-4 py-2.5 text-[17px]"
           >
             <span>Sign out</span>
             <ChevronRight className="size-5 text-muted-foreground" />

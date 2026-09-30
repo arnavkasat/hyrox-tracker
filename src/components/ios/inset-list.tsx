@@ -22,10 +22,10 @@ export function InsetGroup({
       ) : null}
       <div
         className={cn(
-          "overflow-hidden rounded-xl bg-card",
+          "surface overflow-hidden rounded-2xl",
           // Hairline separators between rows, inset from the left like iOS.
           "[&>*+*]:relative [&>*+*]:before:absolute [&>*+*]:before:inset-x-0 [&>*+*]:before:top-0",
-          "[&>*+*]:before:ml-4 [&>*+*]:before:h-px [&>*+*]:before:bg-border",
+          "[&>*+*]:before:ml-4 [&>*+*]:before:h-px [&>*+*]:before:bg-hairline",
         )}
       >
         {children}

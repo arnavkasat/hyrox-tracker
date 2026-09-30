@@ -148,7 +148,7 @@ export function WorkoutView({
     <>
       <div className="space-y-6">
         {/* ------------------------------------------------ session meta -- */}
-        <div className="rounded-2xl bg-card p-4">
+        <div className="surface rounded-2xl p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[17px] font-medium">With partner</p>
@@ -168,9 +168,9 @@ export function WorkoutView({
 
           {rows.length > 0 ? (
             <>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary">
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-300"
+                  className="ember h-full rounded-full transition-[width] duration-300"
                   style={{ width: `${(completedCount / rows.length) * 100}%` }}
                 />
               </div>
@@ -192,7 +192,7 @@ export function WorkoutView({
               </span>
             </div>
 
-            <div className="overflow-hidden rounded-xl bg-card [&>*+*]:relative [&>*+*]:before:absolute [&>*+*]:before:inset-x-0 [&>*+*]:before:top-0 [&>*+*]:before:ml-4 [&>*+*]:before:h-px [&>*+*]:before:bg-border">
+            <div className="surface overflow-hidden rounded-2xl [&>*+*]:relative [&>*+*]:before:absolute [&>*+*]:before:inset-x-0 [&>*+*]:before:top-0 [&>*+*]:before:ml-4 [&>*+*]:before:h-px [&>*+*]:before:bg-hairline">
               {setRows.map((row) => (
                 <SetRowItem
                   key={keyOf(row)}
@@ -216,8 +216,9 @@ export function WorkoutView({
         <Button
           onClick={onFinish}
           disabled={finishing}
-          size="lg"
-          className="h-12 w-full text-[17px]"
+          variant="ember"
+          size="ios"
+          className="w-full"
         >
           {finishing ? "Saving…" : "Finish session"}
         </Button>

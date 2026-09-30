@@ -37,12 +37,12 @@ export function Stepper({
         aria-label={label ? `Decrease ${label}` : "Decrease"}
         onClick={() => onChange(clamp(value - step))}
         disabled={value <= min}
-        className="flex size-11 items-center justify-center rounded-l-lg bg-secondary text-foreground transition active:scale-95 disabled:opacity-30"
+        className="press surface flex size-11 items-center justify-center rounded-l-xl border-r-0 text-foreground disabled:opacity-30"
       >
         <Minus className="size-5" />
       </button>
 
-      <div className="flex h-11 min-w-[4.5rem] items-center justify-center bg-secondary px-2 text-[17px] font-semibold">
+      <div className="surface flex h-11 min-w-[4.5rem] items-center justify-center rounded-none border-x-0 px-2 text-[17px] font-semibold">
         {value.toFixed(decimals)}
         {suffix ? (
           <span className="ml-0.5 text-[13px] font-normal text-muted-foreground">{suffix}</span>
@@ -54,7 +54,7 @@ export function Stepper({
         aria-label={label ? `Increase ${label}` : "Increase"}
         onClick={() => onChange(clamp(value + step))}
         disabled={value >= max}
-        className="flex size-11 items-center justify-center rounded-r-lg bg-secondary text-foreground transition active:scale-95 disabled:opacity-30"
+        className="press surface flex size-11 items-center justify-center rounded-r-xl border-l-0 text-foreground disabled:opacity-30"
       >
         <Plus className="size-5" />
       </button>

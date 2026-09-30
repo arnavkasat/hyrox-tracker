@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="h-12 w-full text-[17px]" disabled={pending}>
+    <Button type="submit" variant="ember" size="ios" className="w-full" disabled={pending}>
       {pending ? "Sending…" : "Send magic link"}
     </Button>
   );
@@ -45,7 +45,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         required
         placeholder="you@example.com"
         aria-label="Email address"
-        className="h-12 text-[17px]"
+        className="h-12 rounded-xl text-[17px]"
       />
       <SubmitButton />
       {state.status === "error" && state.message ? (
