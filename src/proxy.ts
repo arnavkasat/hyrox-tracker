@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+import { isAllowed } from "@/lib/access";
+
 /**
  * Refreshes the Supabase session on every request and keeps unauthenticated
  * traffic out of the app. This is an optimistic gate — row-level security in
@@ -50,9 +52,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // A session for anyone other than the owner is treated as no session.
-  const allowed = process.env.ALLOWED_EMAIL?.toLowerCase().trim();
-  if (user && allowed && user.email?.toLowerCase().trim() !== allowed) {
+  // A session for anyone not on the allow list is treated as no session.
+  if (user && !isAllowed(user.email)) {
     await supabase.auth.signOut();
     const url = request.nextUrl.clone();
     url.pathname = "/login";

@@ -8,6 +8,7 @@ import { buildProposals, upcomingWindow, type ProposedChange } from "@/lib/revie
 import { writeReview } from "@/lib/review/claude";
 import { validatePatches } from "@/lib/plan/patch";
 import type { PlanSession, Settings } from "@/lib/supabase/types";
+import { ownerEmail } from "@/lib/access";
 
 /**
  * The weekly review job.
@@ -65,17 +66,38 @@ export async function GET(request: NextRequest) {
   const force = request.nextUrl.searchParams.get("force") === "1";
   const supabase = createAdminClient();
 
+  // Whose week this is. Taking "the first settings row" would quietly
+  // review whichever account happened to sort first once more than one
+  // person can sign in.
+  const owner = ownerEmail();
+  if (!owner) {
+    return NextResponse.json({ error: "OWNER_EMAIL is not configured." }, { status: 503 });
+  }
+
+  const { data: users, error: usersError } = await supabase.auth.admin.listUsers({
+    page: 1,
+    perPage: 200,
+  });
+  if (usersError) {
+    return NextResponse.json({ error: usersError.message }, { status: 500 });
+  }
+
+  const ownerId = users.users.find((u) => u.email?.toLowerCase() === owner)?.id;
+  if (!ownerId) {
+    return NextResponse.json({ skipped: "No account matches OWNER_EMAIL yet." });
+  }
+
   const { data: settingsRow, error: settingsError } = await supabase
     .from("settings")
     .select("*")
-    .limit(1)
+    .eq("user_id", ownerId)
     .maybeSingle();
 
   if (settingsError) {
     return NextResponse.json({ error: settingsError.message }, { status: 500 });
   }
   if (!settingsRow) {
-    return NextResponse.json({ skipped: "No settings row yet." });
+    return NextResponse.json({ skipped: "The owner has no settings row yet." });
   }
 
   const settings = settingsRow as Settings;
