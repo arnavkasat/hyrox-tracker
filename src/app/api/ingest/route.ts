@@ -24,8 +24,6 @@ const METRIC_COLUMNS = [
   "resting_hr",
   "hrv_ms",
   "sleep_hours",
-  "calories",
-  "protein_g",
   "steps",
 ] as const satisfies readonly (keyof MetricFields)[];
 
@@ -121,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     const { data: existingRows, error: readError } = await supabase
       .from("health_metrics")
-      .select("date, resting_hr, hrv_ms, sleep_hours, calories, protein_g, steps")
+      .select("date, resting_hr, hrv_ms, sleep_hours, steps")
       .eq("user_id", userId)
       .in("date", dates);
 

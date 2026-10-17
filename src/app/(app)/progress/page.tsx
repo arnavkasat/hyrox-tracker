@@ -1,7 +1,11 @@
 import {
   ConsistencyChart,
+  HrvChart,
   PaceChart,
   ReadinessChart,
+  RestingHrChart,
+  SleepChart,
+  StepsChart,
   VolumeChart,
   WeightChart,
 } from "./charts";
@@ -19,6 +23,10 @@ export default async function ProgressPage() {
   const data = await getProgressData(supabase, user.id, today);
 
   const weightPoints = data.weight.filter((p) => p.weight != null);
+
+  // Each health chart only earns its place once there's something to draw.
+  const has = (key: "restingHr" | "hrv" | "sleepHours" | "steps") =>
+    data.health.filter((h) => h[key] != null).length;
   const completionRate =
     data.totalPlannedToDate > 0
       ? Math.round((data.totalCompleted / data.totalPlannedToDate) * 100)
@@ -88,7 +96,11 @@ export default async function ProgressPage() {
 
       <ChartCard
         title="Readiness"
-        caption="From your energy and soreness each morning. Higher is fresher."
+        caption={
+          data.hrvBaseline != null
+            ? "Blends your check-in with last night's sleep and HRV. Higher is fresher."
+            : "From your energy and soreness each morning. Sleep and HRV join in once there's enough history."
+        }
         empty={
           data.readiness.filter((r) => r.score != null).length < 2
             ? "Two mornings of check-ins and this fills in."
@@ -96,6 +108,47 @@ export default async function ProgressPage() {
         }
       >
         <ReadinessChart data={data.readiness} />
+      </ChartCard>
+
+      {/* ------------------------------------------------------- health -- */}
+      <ChartCard
+        title="Sleep"
+        caption="Time asleep, not time in bed."
+        empty={has("sleepHours") === 0 ? "Wear your watch overnight and this fills in." : undefined}
+      >
+        <SleepChart data={data.health} />
+      </ChartCard>
+
+      <ChartCard
+        title="Resting heart rate"
+        caption="Axis is flipped so up is better. A climb over several days usually means fatigue."
+        empty={
+          has("restingHr") < 2
+            ? "Needs a couple of days of watch data."
+            : undefined
+        }
+      >
+        <RestingHrChart data={data.health} />
+      </ChartCard>
+
+      <ChartCard
+        title="Heart rate variability"
+        caption={
+          data.hrvBaseline != null
+            ? `Your baseline is ${Math.round(data.hrvBaseline)} ms. Higher than that is a good sign.`
+            : "Higher is generally better. A personal baseline needs about five readings."
+        }
+        empty={has("hrv") < 2 ? "Needs a couple of days of watch data." : undefined}
+      >
+        <HrvChart data={data.health} />
+      </ChartCard>
+
+      <ChartCard
+        title="Steps"
+        caption="Everything you do outside training still costs you something."
+        empty={has("steps") === 0 ? "Arrives with the Apple Health sync." : undefined}
+      >
+        <StepsChart data={data.health} />
       </ChartCard>
 
       <ChartCard

@@ -110,7 +110,7 @@ Metrics worth enabling — anything else is accepted and ignored, and comes
 back in `ignored_metrics` so you can see what's being dropped:
 
 `resting_heart_rate` · `heart_rate_variability` · `sleep_analysis` ·
-`dietary_energy` · `protein` · `step_count`
+`step_count`
 
 Enable **Workouts** as well; runs are what the pace chart is built from.
 
@@ -124,10 +124,28 @@ than 36 hours old.
   re-posting the same data changes nothing.
 - **Partial syncs don't erase.** A payload carrying only steps won't blank
   that day's resting HR: existing rows are read, merged, and written back.
-- **Units are converted.** kJ to kcal, miles to km, minutes to hours.
-  Sleep counts time asleep, not time in bed.
+- **Same-day samples combine.** Health Auto Export sends hourly buckets,
+  not daily figures. Counts (steps, sleep) sum; measurements (resting HR,
+  HRV) average. Overwriting instead would record the last hour as the day.
+- **Units are converted.** Miles to km, minutes to hours. Sleep counts time
+  asleep, not time in bed.
 - **Bad input degrades.** An unparseable metric is skipped rather than
   failing the whole request; a partial sync beats a rejected one.
+
+## Readiness
+
+A single 0-100 score, blended from whatever inputs exist that morning:
+
+| Input | Weight | Source |
+| --- | --- | --- |
+| Energy and soreness | 50% | the check-in |
+| Sleep | 25% | against an 8-hour target |
+| HRV | 25% | against *your own* trailing baseline |
+
+Missing inputs drop out and the rest are re-weighted, so the score still
+works on a morning with no watch data — it's just based on less. Nothing is
+imputed. HRV is scored against your own 30-day mean rather than any
+population norm, because absolute HRV says nothing on its own.
 
 ## The training plan
 

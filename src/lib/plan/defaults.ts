@@ -9,10 +9,6 @@ export const DEFAULT_SETTINGS = {
   timezone: "Europe/London", // corrected from the browser on first load
   height_cm: 175.3, // 5'9"
   body_weight_kg: 73,
-  calorie_target_min: 2700,
-  calorie_target_max: 2900,
-  protein_target_min: 130,
-  protein_target_max: 145,
   easy_pace_min_sec: 345, // 5:45 / km
   easy_pace_max_sec: 375, // 6:15 / km
   race_pace_sec: 300, // 5:00 / km

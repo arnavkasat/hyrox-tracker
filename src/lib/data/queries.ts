@@ -7,6 +7,7 @@ import { today as todayIn, type ISODate } from "@/lib/date";
 import type {
   DailyCheckin,
   ExerciseLog,
+  HealthMetric,
   PlanSession,
   Settings,
 } from "@/lib/supabase/types";
@@ -113,6 +114,31 @@ export async function getRecentCheckins(
 
   if (error) throw error;
   return (data ?? []) as DailyCheckin[];
+}
+
+/** Today's health row, plus recent HRV so a baseline can be formed. */
+export async function getHealthContext(
+  supabase: SupabaseClient,
+  userId: string,
+  date: ISODate,
+  from: ISODate,
+): Promise<{ today: HealthMetric | null; hrvHistory: number[] }> {
+  const { data, error } = await supabase
+    .from("health_metrics")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("date", from)
+    .order("date");
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as HealthMetric[];
+  return {
+    today: rows.find((r) => r.date === date) ?? null,
+    hrvHistory: rows
+      .map((r) => (r.hrv_ms == null ? null : Number(r.hrv_ms)))
+      .filter((v): v is number => v != null),
+  };
 }
 
 export async function getPhotoForDate(

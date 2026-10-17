@@ -3,8 +3,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { addDays, type ISODate } from "@/lib/date";
-import { readinessScore, rollingAverage } from "@/lib/readiness";
-import type { Benchmark, DailyCheckin, PlanSession, Workout } from "@/lib/supabase/types";
+import { hrvBaseline, readiness, rollingAverage } from "@/lib/readiness";
+import type {
+  Benchmark,
+  DailyCheckin,
+  HealthMetric,
+  PlanSession,
+  Workout,
+} from "@/lib/supabase/types";
 
 export type WeightPoint = {
   date: ISODate;
@@ -27,6 +33,16 @@ export type ReadinessPoint = {
   score: number | null;
 };
 
+/** One health metric over time, for the charts on Progress. */
+export type HealthPoint = {
+  date: ISODate;
+  label: string;
+  restingHr: number | null;
+  hrv: number | null;
+  sleepHours: number | null;
+  steps: number | null;
+};
+
 export type PacePoint = {
   date: ISODate;
   paceSec: number;
@@ -39,10 +55,13 @@ export type ProgressData = {
   readiness: ReadinessPoint[];
   paces: PacePoint[];
   benchmarks: Benchmark[];
+  health: HealthPoint[];
   latestAverageWeight: number | null;
   totalCompleted: number;
   totalPlannedToDate: number;
   averageReadiness: number | null;
+  /** Null until there's enough HRV history for a baseline to mean anything. */
+  hrvBaseline: number | null;
 };
 
 const HISTORY_DAYS = 84; // twelve weeks
@@ -54,7 +73,8 @@ export async function getProgressData(
 ): Promise<ProgressData> {
   const since = addDays(today, -HISTORY_DAYS);
 
-  const [checkinsRes, sessionsRes, logsRes, workoutsRes, benchmarksRes] = await Promise.all([
+  const [checkinsRes, sessionsRes, logsRes, workoutsRes, benchmarksRes, healthRes] =
+    await Promise.all([
     supabase
       .from("daily_checkins")
       .select("*")
@@ -75,9 +95,15 @@ export async function getProgressData(
       .gte("started_at", `${since}T00:00:00Z`)
       .order("started_at"),
     supabase.from("benchmarks").select("*").eq("user_id", userId).order("date"),
+    supabase
+      .from("health_metrics")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", since)
+      .order("date"),
   ]);
 
-  for (const res of [checkinsRes, sessionsRes, logsRes, workoutsRes, benchmarksRes]) {
+  for (const res of [checkinsRes, sessionsRes, logsRes, workoutsRes, benchmarksRes, healthRes]) {
     if (res.error) throw res.error;
   }
 
@@ -85,6 +111,7 @@ export async function getProgressData(
   const sessions = (sessionsRes.data ?? []) as PlanSession[];
   const workouts = (workoutsRes.data ?? []) as Workout[];
   const benchmarks = (benchmarksRes.data ?? []) as Benchmark[];
+  const healthRows = (healthRes.data ?? []) as HealthMetric[];
 
   // ---------------------------------------------------------- weight ----
   const weight: WeightPoint[] = [];
@@ -130,12 +157,38 @@ export async function getProgressData(
       planned: bucket.planned,
     }));
 
-  // -------------------------------------------------------- readiness ----
-  const readiness: ReadinessPoint[] = checkins.slice(-14).map((checkin) => ({
-    date: checkin.date,
-    label: checkin.date.slice(8),
-    score: readinessScore(checkin.energy, checkin.soreness),
+  // ----------------------------------------------------------- health ----
+  const health: HealthPoint[] = healthRows.map((row) => ({
+    date: row.date,
+    label: row.date.slice(8),
+    restingHr: row.resting_hr,
+    hrv: row.hrv_ms == null ? null : Number(row.hrv_ms),
+    sleepHours: row.sleep_hours == null ? null : Number(row.sleep_hours),
+    steps: row.steps,
   }));
+
+  const baseline = hrvBaseline(
+    health.map((h) => h.hrv).filter((v): v is number => v != null),
+  );
+
+  // -------------------------------------------------------- readiness ----
+  const healthByDate = new Map(health.map((h) => [h.date, h]));
+
+  const readinessSeries: ReadinessPoint[] = checkins.slice(-14).map((checkin) => {
+    const day = healthByDate.get(checkin.date);
+    return {
+      date: checkin.date,
+      label: checkin.date.slice(8),
+      score:
+        readiness({
+          energy: checkin.energy,
+          soreness: checkin.soreness,
+          sleepHours: day?.sleepHours,
+          hrv: day?.hrv,
+          hrvBaseline: baseline,
+        })?.score ?? null,
+    };
+  });
 
   // ------------------------------------------------------------ paces ----
   const paces: PacePoint[] = workouts
@@ -147,16 +200,17 @@ export async function getProgressData(
         w.pace_sec_per_km ?? Math.round(Number(w.duration_sec) / Number(w.distance_km)),
     }));
 
-  const readinessScores = readiness
+  const readinessScores = readinessSeries
     .map((r) => r.score)
     .filter((s): s is number => s !== null);
 
   return {
     weight,
     weeks,
-    readiness,
+    readiness: readinessSeries,
     paces,
     benchmarks,
+    health,
     latestAverageWeight: weight.at(-1)?.average ?? null,
     totalCompleted: [...weekBuckets.values()].reduce((n, b) => n + b.completed, 0),
     totalPlannedToDate: [...weekBuckets.values()].reduce((n, b) => n + b.planned, 0),
@@ -164,5 +218,6 @@ export async function getProgressData(
       readinessScores.length > 0
         ? Math.round(readinessScores.reduce((a, b) => a + b, 0) / readinessScores.length)
         : null,
+    hrvBaseline: baseline,
   };
 }

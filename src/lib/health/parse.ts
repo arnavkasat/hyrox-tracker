@@ -22,8 +22,6 @@ export type MetricFields = {
   resting_hr: number | null;
   hrv_ms: number | null;
   sleep_hours: number | null;
-  calories: number | null;
-  protein_g: number | null;
   steps: number | null;
 };
 
@@ -49,14 +47,10 @@ const METRIC_COLUMNS: Record<string, keyof MetricFields> = {
   heart_rate_variability: "hrv_ms",
   heart_rate_variability_sdnn: "hrv_ms",
   sleep_analysis: "sleep_hours",
-  dietary_energy: "calories",
-  dietary_energy_consumed: "calories",
-  protein: "protein_g",
   step_count: "steps",
   steps: "steps",
 };
 
-const KJ_PER_KCAL = 4.184;
 const KM_PER_MILE = 1.609344;
 
 /**
@@ -70,8 +64,6 @@ const KM_PER_MILE = 1.609344;
  */
 const AGGREGATION: Record<keyof MetricFields, "sum" | "mean"> = {
   steps: "sum",
-  calories: "sum",
-  protein_g: "sum",
   sleep_hours: "sum",
   resting_hr: "mean",
   hrv_ms: "mean",
@@ -121,9 +113,6 @@ export function timestampToISODate(value: unknown): ISODate | null {
 function convert(column: keyof MetricFields, value: number, units: string | null): number {
   const u = (units ?? "").toLowerCase();
 
-  if (column === "calories" && (u === "kj" || u === "kilojoules")) {
-    return value / KJ_PER_KCAL;
-  }
   if (column === "sleep_hours") {
     if (u.startsWith("min")) return value / 60;
     if (u.startsWith("s")) return value / 3600;
@@ -221,7 +210,7 @@ export function normalizeIngest(body: unknown): NormalizedIngest {
 
       // Counts are whole numbers; the rest keep two decimals.
       row[column] =
-        column === "steps" || column === "calories" || column === "resting_hr"
+        column === "steps" || column === "resting_hr"
           ? Math.round(combined)
           : Math.round(combined * 100) / 100;
     }
