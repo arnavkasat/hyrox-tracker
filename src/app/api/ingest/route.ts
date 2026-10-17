@@ -37,9 +37,22 @@ function authorize(request: NextRequest): AuthResult {
     return { ok: false, status: 503, error: "INGEST_TOKEN is not configured on the server." };
   }
 
-  const header = request.headers.get("authorization") ?? "";
-  const provided = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  if (!provided) return { ok: false, status: 401, error: "Missing bearer token." };
+  // RFC 7235: the scheme is case-insensitive, so "bearer x" is as valid as
+  // "Bearer x". Matching only the capitalised form turns a typo in a phone
+  // app's header field into a 401 with no useful explanation.
+  const header = request.headers.get("authorization")?.trim() ?? "";
+  const scheme = /^bearer\s+(.+)$/i.exec(header);
+  const provided = scheme ? scheme[1].trim() : "";
+
+  if (!provided) {
+    return {
+      ok: false,
+      status: 401,
+      error: header
+        ? "Authorization header must look like: Bearer <token>"
+        : "Missing bearer token.",
+    };
+  }
 
   // Constant-time compare; the length check short-circuits, which only
   // reveals the length, not the contents.
