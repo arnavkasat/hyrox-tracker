@@ -11,13 +11,14 @@ import { Screen } from "@/components/ios/screen";
 import {
   getAppContext,
   getCheckinForDate,
+  getHealthContext,
   getPhotoForDate,
   getRecentCheckins,
   getSessionForDate,
   hoursSinceSync,
 } from "@/lib/data/queries";
 import { addDays, diffDays, formatLongDate, isoWeekday } from "@/lib/date";
-import { readinessBand, readinessScore, rollingAverage } from "@/lib/readiness";
+import { hrvBaseline, readiness, readinessBand, rollingAverage } from "@/lib/readiness";
 import { TOTAL_WEEKS } from "@/lib/plan/template";
 
 const PHASE_LABEL: Record<string, string> = {
@@ -37,14 +38,24 @@ export default async function TodayPage() {
   // The weekly photo rides along with Sunday's check-in.
   const isSunday = isoWeekday(today) === 7;
 
-  const [session, checkin, photo, recentCheckins] = await Promise.all([
+  const [session, checkin, photo, recentCheckins, health] = await Promise.all([
     getSessionForDate(supabase, user.id, today),
     getCheckinForDate(supabase, user.id, today),
     isSunday ? getPhotoForDate(supabase, user.id, today) : Promise.resolve(null),
     getRecentCheckins(supabase, user.id, addDays(today, -13)),
+    getHealthContext(supabase, user.id, today, addDays(today, -29)),
   ]);
 
-  const score = readinessScore(checkin?.energy, checkin?.soreness);
+  // Readiness blends the check-in with last night's sleep and HRV, using
+  // whichever of those exist.
+  const result = readiness({
+    energy: checkin?.energy,
+    soreness: checkin?.soreness,
+    sleepHours: health.today?.sleep_hours == null ? null : Number(health.today.sleep_hours),
+    hrv: health.today?.hrv_ms == null ? null : Number(health.today.hrv_ms),
+    hrvBaseline: hrvBaseline(health.hrvHistory),
+  });
+  const score = result?.score ?? null;
   const band = readinessBand(score);
 
   // Two 7-day averages side by side say more than today's number alone.
@@ -115,10 +126,13 @@ export default async function TodayPage() {
         />
       ) : null}
 
-      {band ? (
-        <p className="-mt-3 px-1 text-center text-[13px] text-muted-foreground">
-          {band.hint}
-        </p>
+      {band && result ? (
+        <div className="-mt-3 space-y-1 px-1 text-center">
+          <p className="text-[13px] text-muted-foreground">{band.hint}</p>
+          <p className="text-[11px] text-muted-foreground/70">
+            {result.parts.map((part) => `${part.label} ${part.score}`).join(" · ")}
+          </p>
+        </div>
       ) : null}
 
       <QuoteCard />

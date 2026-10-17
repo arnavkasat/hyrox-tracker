@@ -16,10 +16,6 @@ export type Settings = {
   timezone: string;
   height_cm: number | null;
   body_weight_kg: number | null;
-  calorie_target_min: number;
-  calorie_target_max: number;
-  protein_target_min: number;
-  protein_target_max: number;
   easy_pace_min_sec: number;
   easy_pace_max_sec: number;
   race_pace_sec: number;
@@ -89,8 +85,6 @@ export type HealthMetric = {
   resting_hr: number | null;
   hrv_ms: number | null;
   sleep_hours: number | null;
-  calories: number | null;
-  protein_g: number | null;
   steps: number | null;
   created_at: string;
   updated_at: string;

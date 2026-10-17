@@ -16,7 +16,13 @@ import {
 } from "recharts";
 
 import { formatPace } from "@/lib/date";
-import type { PacePoint, ReadinessPoint, WeekPoint, WeightPoint } from "@/lib/data/progress";
+import type {
+  HealthPoint,
+  PacePoint,
+  ReadinessPoint,
+  WeekPoint,
+  WeightPoint,
+} from "@/lib/data/progress";
 
 /* Recharts types `content` against its own default generics, which it does
    not re-export by name, so mirror them here rather than casting. */
@@ -233,5 +239,136 @@ export function PaceChart({ data }: { data: PacePoint[] }) {
         <Scatter data={data} fill="var(--chart-3)" shape="circle" />
       </ScatterChart>
     </ResponsiveContainer>
+  );
+}
+
+/* ------------------------------------------------------------- health -- */
+
+/**
+ * One health metric over time. Single series throughout, so each chart uses
+ * one hue and needs no legend — the card title names what you're looking at.
+ */
+function HealthSeries({
+  data,
+  dataKey,
+  unit,
+  colour,
+  kind,
+  format = (v: number) => String(v),
+  reversed = false,
+}: {
+  data: HealthPoint[];
+  dataKey: keyof HealthPoint;
+  unit: string;
+  colour: string;
+  kind: "bar" | "line";
+  format?: (value: number) => string;
+  reversed?: boolean;
+}) {
+  const values = data
+    .map((d) => d[dataKey])
+    .filter((v): v is number => typeof v === "number");
+
+  const pad = Math.max(1, (Math.max(...values) - Math.min(...values)) * 0.15);
+  const domain: [number, number] =
+    kind === "bar" ? [0, Math.ceil(Math.max(...values) * 1.1)]
+                   : [Math.floor(Math.min(...values) - pad), Math.ceil(Math.max(...values) + pad)];
+
+  const tip = ({ active, payload }: TipProps) => {
+    if (!active || !payload?.length) return null;
+    const point = payload[0].payload as HealthPoint;
+    const value = point[dataKey];
+    return (
+      <Panel
+        label={point.date}
+        rows={[{ name: unit, value: typeof value === "number" ? format(value) : "—" }]}
+      />
+    );
+  };
+
+  const axes = (
+    <>
+      <CartesianGrid {...GRID} />
+      <XAxis dataKey="label" {...AXIS} minTickGap={8} />
+      <YAxis width={40} domain={domain} reversed={reversed} {...AXIS} />
+      <Tooltip content={tip} cursor={kind === "bar" ? { fill: "rgb(255 255 255 / 4%)" } : { stroke: "var(--grid)" }} />
+    </>
+  );
+
+  return (
+    <ResponsiveContainer width="100%" height={150}>
+      {kind === "bar" ? (
+        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+          {axes}
+          <Bar dataKey={dataKey} fill={colour} radius={[4, 4, 0, 0]} maxBarSize={18} />
+        </BarChart>
+      ) : (
+        <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+          {axes}
+          <Line
+            dataKey={dataKey}
+            stroke={colour}
+            strokeWidth={2}
+            dot={{ r: 2.5, fill: colour, strokeWidth: 0 }}
+            connectNulls
+            isAnimationActive={false}
+          />
+        </LineChart>
+      )}
+    </ResponsiveContainer>
+  );
+}
+
+export function SleepChart({ data }: { data: HealthPoint[] }) {
+  return (
+    <HealthSeries
+      data={data}
+      dataKey="sleepHours"
+      unit="Sleep"
+      colour="var(--chart-2)"
+      kind="bar"
+      format={(v) => `${v.toFixed(1)} h`}
+    />
+  );
+}
+
+export function RestingHrChart({ data }: { data: HealthPoint[] }) {
+  return (
+    <HealthSeries
+      data={data}
+      dataKey="restingHr"
+      unit="Resting HR"
+      colour="var(--chart-3)"
+      kind="line"
+      format={(v) => `${v} bpm`}
+      // Lower is better, so down on the page means worse.
+      reversed
+    />
+  );
+}
+
+export function HrvChart({ data }: { data: HealthPoint[] }) {
+  return (
+    <HealthSeries
+      data={data}
+      dataKey="hrv"
+      unit="HRV"
+      colour="var(--chart-4)"
+      kind="line"
+      format={(v) => `${Math.round(v)} ms`}
+    />
+  );
+}
+
+export function StepsChart({ data }: { data: HealthPoint[] }) {
+  return (
+    <HealthSeries
+      data={data}
+      dataKey="steps"
+      unit="Steps"
+      colour="var(--chart-5)"
+      kind="bar"
+      format={(v) => v.toLocaleString()}
+    />
   );
 }

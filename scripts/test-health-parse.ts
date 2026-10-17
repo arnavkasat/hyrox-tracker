@@ -19,10 +19,6 @@ const payload = {
       { name: "step_count", units: "count",
         data: [{ date: "2026-09-29 00:00:00 +0000", qty: 8412.6 },
                { date: "2026-09-30 00:00:00 +0000", qty: 10233 }] },
-      { name: "dietary_energy", units: "kJ",
-        data: [{ date: "2026-09-29 00:00:00 +0000", qty: 11500 }] },
-      { name: "protein", units: "g",
-        data: [{ date: "2026-09-29 00:00:00 +0000", qty: 138.4 }] },
       { name: "sleep_analysis", units: "hr",
         data: [{ date: "2026-09-29 00:00:00 +0000", inBed: 8.4, core: 4.1, deep: 1.2, rem: 1.6 }] },
       { name: "flights_climbed", units: "count",
@@ -44,8 +40,6 @@ const d29 = r.metrics.get("2026-09-29")!;
 check("resting hr rounds", d29.resting_hr, 51);
 check("hrv keeps decimals", d29.hrv_ms, 68.2);
 check("steps round", d29.steps, 8413);
-check("kJ converts to kcal", d29.calories, Math.round(11500 / 4.184));
-check("protein", d29.protein_g, 138.4);
 check("sleep sums stages, ignores inBed", d29.sleep_hours, 6.9);
 check("second day captured", r.metrics.get("2026-09-30")!.steps, 10233);
 check("unknown metric reported", r.ignored, ["flights_climbed"]);
@@ -88,16 +82,18 @@ const hourly = normalizeIngest({ data: { metrics: [
     { date: "2026-10-17 08:00:00 +0000", qty: 52 },
     { date: "2026-10-17 20:00:00 +0000", qty: 56 },
   ]},
-  { name: "dietary_energy", units: "kcal", data: [
-    { date: "2026-10-17 09:00:00 +0000", qty: 600 },
-    { date: "2026-10-17 13:00:00 +0000", qty: 900 },
-    { date: "2026-10-17 19:00:00 +0000", qty: 1100 },
-  ]},
 ]}});
 const day = hourly.metrics.get("2026-10-17")!;
 check("counts sum across the day", day.steps, 9200);
-check("calories sum across the day", day.calories, 2600);
 check("measurements average, not sum", day.resting_hr, 54);
+
+// Nutrition was removed; those metrics should now be reported as ignored.
+const nutrition = normalizeIngest({ data: { metrics: [
+  { name: "dietary_energy", units: "kcal", data: [{ date: "2026-10-17T00:00:00Z", qty: 2600 }] },
+  { name: "protein", units: "g", data: [{ date: "2026-10-17T00:00:00Z", qty: 140 }] },
+]}});
+check("nutrition metrics are ignored, not stored", nutrition.ignored, ["dietary_energy", "protein"]);
+check("and produce no rows", nutrition.metrics.size, 0);
 
 console.log("\n— junk in, no throw —");
 for (const junk of [null, {}, [], "nope", { data: null }, { data: { metrics: "x", workouts: 3 } },
