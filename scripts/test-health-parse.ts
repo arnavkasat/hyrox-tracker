@@ -75,6 +75,30 @@ const totalSleep = normalizeIngest({ data: { metrics: [
 ]}});
 check("sleep in minutes converts", totalSleep.metrics.get("2026-09-29")!.sleep_hours, 7.45);
 
+console.log("\n— several samples on one day —");
+// Health Auto Export frequently sends hourly buckets rather than a daily
+// total. Overwriting instead of accumulating turned 9,000 steps into 28.
+const hourly = normalizeIngest({ data: { metrics: [
+  { name: "step_count", units: "count", data: [
+    { date: "2026-10-17 08:00:00 +0000", qty: 3200 },
+    { date: "2026-10-17 12:00:00 +0000", qty: 4100 },
+    { date: "2026-10-17 18:00:00 +0000", qty: 1900 },
+  ]},
+  { name: "resting_heart_rate", units: "count/min", data: [
+    { date: "2026-10-17 08:00:00 +0000", qty: 52 },
+    { date: "2026-10-17 20:00:00 +0000", qty: 56 },
+  ]},
+  { name: "dietary_energy", units: "kcal", data: [
+    { date: "2026-10-17 09:00:00 +0000", qty: 600 },
+    { date: "2026-10-17 13:00:00 +0000", qty: 900 },
+    { date: "2026-10-17 19:00:00 +0000", qty: 1100 },
+  ]},
+]}});
+const day = hourly.metrics.get("2026-10-17")!;
+check("counts sum across the day", day.steps, 9200);
+check("calories sum across the day", day.calories, 2600);
+check("measurements average, not sum", day.resting_hr, 54);
+
 console.log("\n— junk in, no throw —");
 for (const junk of [null, {}, [], "nope", { data: null }, { data: { metrics: "x", workouts: 3 } },
                     { data: { metrics: [{ name: "step_count", data: [{ date: "garbage", qty: 1 }] }] } }]) {
