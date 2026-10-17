@@ -156,7 +156,7 @@ export default async function ProgressPage() {
         caption="Every recorded run. Higher is faster."
         empty={
           data.paces.length === 0
-            ? "Runs arrive with Apple Health once the sync is set up."
+            ? "No runs yet. Workouts need their own Health Auto Export automation — Data Type set to Workouts, not Health Metrics."
             : undefined
         }
       >
