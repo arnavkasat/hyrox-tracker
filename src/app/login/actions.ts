@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getSiteOrigin } from "@/lib/site-url";
+import { allowedEmails, isAllowed } from "@/lib/access";
 
 export type LoginState = {
   status: "idle" | "sent" | "error";
@@ -9,20 +10,20 @@ export type LoginState = {
 };
 
 /**
- * Sends the magic link, but only ever to ALLOWED_EMAIL. Row-level security
- * is the real lock; this just stops the mailbox being used as a signup form.
+ * Sends the magic link, but only to an address on the allow list. Row-level
+ * security is the real lock; this just stops the mailbox being used as a
+ * signup form.
  */
 export async function requestMagicLink(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const allowed = process.env.ALLOWED_EMAIL?.trim().toLowerCase();
 
-  if (!allowed) {
-    return { status: "error", message: "ALLOWED_EMAIL is not set on the server." };
+  if (allowedEmails().length === 0) {
+    return { status: "error", message: "ALLOWED_EMAILS is not set on the server." };
   }
-  if (email !== allowed) {
+  if (!isAllowed(email)) {
     return { status: "error", message: "That address can't sign in to this app." };
   }
 

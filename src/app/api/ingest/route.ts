@@ -4,6 +4,7 @@ import { timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeIngest, type MetricFields } from "@/lib/health/parse";
 import type { ISODate } from "@/lib/date";
+import { ownerEmail } from "@/lib/access";
 
 /**
  * Health Auto Export posts here on a schedule from the iPhone.
@@ -61,11 +62,15 @@ function authorize(request: NextRequest): AuthResult {
   return match ? { ok: true } : { ok: false, status: 401, error: "Invalid token." };
 }
 
-/** The single owner of this install, resolved from ALLOWED_EMAIL. */
+/**
+ * Whose health data this is. Deliberately the owner and not "whoever is on
+ * the allow list" — other people can sign in, but a phone posts one
+ * person's heart rate.
+ */
 async function resolveUserId(
   supabase: ReturnType<typeof createAdminClient>,
 ): Promise<string | null> {
-  const allowed = process.env.ALLOWED_EMAIL?.trim().toLowerCase();
+  const allowed = ownerEmail();
   if (!allowed) return null;
 
   const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
@@ -103,7 +108,7 @@ export async function POST(request: NextRequest) {
 
   if (!userId) {
     return NextResponse.json(
-      { error: "No account matches ALLOWED_EMAIL. Sign in once before syncing." },
+      { error: "No account matches OWNER_EMAIL. Sign in once before syncing." },
       { status: 409 },
     );
   }
@@ -197,7 +202,7 @@ export async function GET(request: NextRequest) {
   const userId = await resolveUserId(supabase);
   if (!userId) {
     return NextResponse.json(
-      { ok: false, error: "No account matches ALLOWED_EMAIL." },
+      { ok: false, error: "No account matches OWNER_EMAIL." },
       { status: 409 },
     );
   }
