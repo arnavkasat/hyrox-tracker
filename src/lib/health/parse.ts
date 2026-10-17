@@ -59,6 +59,24 @@ const METRIC_COLUMNS: Record<string, keyof MetricFields> = {
 const KJ_PER_KCAL = 4.184;
 const KM_PER_MILE = 1.609344;
 
+/**
+ * How to combine several samples that fall on the same day.
+ *
+ * Health Auto Export often sends hourly buckets rather than one daily
+ * figure, so this is not a rare edge case — getting it wrong turns 9,000
+ * steps into whatever happened in the last hour before the sync.
+ *
+ * Counts accumulate over a day; measurements are snapshots and average.
+ */
+const AGGREGATION: Record<keyof MetricFields, "sum" | "mean"> = {
+  steps: "sum",
+  calories: "sum",
+  protein_g: "sum",
+  sleep_hours: "sum",
+  resting_hr: "mean",
+  hrv_ms: "mean",
+};
+
 function num(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
@@ -141,6 +159,8 @@ function sleepHours(entry: Record<string, unknown>, units: string | null): numbe
 }
 
 export function normalizeIngest(body: unknown): NormalizedIngest {
+  // date -> column -> every sample seen, reduced once at the end.
+  const samples = new Map<ISODate, Map<keyof MetricFields, number[]>>();
   const metrics = new Map<ISODate, Partial<MetricFields>>();
   const workouts: NormalizedWorkout[] = [];
   const ignored: string[] = [];
@@ -179,17 +199,34 @@ export function normalizeIngest(body: unknown): NormalizedIngest {
         column === "sleep_hours" ? sleepHours(point, units) : num(point.qty);
       if (value == null) continue;
 
-      const existing = metrics.get(date) ?? {};
       const converted = column === "sleep_hours" ? value : convert(column, value, units);
 
-      // Counts are whole numbers; the rest keep two decimals.
-      existing[column] =
-        column === "steps" || column === "calories" || column === "resting_hr"
-          ? Math.round(converted)
-          : Math.round(converted * 100) / 100;
-
-      metrics.set(date, existing);
+      const forDate = samples.get(date) ?? new Map<keyof MetricFields, number[]>();
+      const list = forDate.get(column) ?? [];
+      list.push(converted);
+      forDate.set(column, list);
+      samples.set(date, forDate);
     }
+  }
+
+  // Reduce the samples into one value per column per day.
+  for (const [date, columns] of samples) {
+    const row: Partial<MetricFields> = {};
+
+    for (const [column, values] of columns) {
+      if (values.length === 0) continue;
+
+      const total = values.reduce((a, b) => a + b, 0);
+      const combined = AGGREGATION[column] === "sum" ? total : total / values.length;
+
+      // Counts are whole numbers; the rest keep two decimals.
+      row[column] =
+        column === "steps" || column === "calories" || column === "resting_hr"
+          ? Math.round(combined)
+          : Math.round(combined * 100) / 100;
+    }
+
+    metrics.set(date, row);
   }
 
   // ----------------------------------------------------------- workouts --
